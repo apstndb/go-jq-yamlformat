@@ -4,7 +4,6 @@ import (
 	"io"
 	"time"
 
-	yamlformat "github.com/apstndb/go-yamlformat"
 	"github.com/goccy/go-yaml"
 	"github.com/itchyny/gojq"
 )
@@ -48,7 +47,7 @@ func WithEncoder(encoder Encoder) ExecuteOption {
 }
 
 // WithWriter sets the output writer and format
-func WithWriter(w io.Writer, format yamlformat.Format) ExecuteOption {
+func WithWriter(w io.Writer, format Format) ExecuteOption {
 	return func(c *executeConfig) {
 		c.encoder = &encoderWrapper{
 			writer: w,

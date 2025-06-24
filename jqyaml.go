@@ -24,6 +24,15 @@ type Encoder interface {
 	Encode(v interface{}) error
 }
 
+// Format represents the output format (YAML or JSON)
+type Format = yamlformat.Format
+
+// Format constants
+const (
+	FormatYAML = yamlformat.FormatYAML
+	FormatJSON = yamlformat.FormatJSON
+)
+
 // pipeline implements the Pipeline interface
 type pipeline struct {
 	query                string
@@ -314,12 +323,12 @@ func convertToJQCompatible(v interface{}, opts ...yaml.EncodeOption) (interface{
 // encoderWrapper wraps yamlformat encoders to support option setting
 type encoderWrapper struct {
 	writer  io.Writer
-	format  yamlformat.Format
+	format  Format
 	options []yaml.EncodeOption
 }
 
 func (e *encoderWrapper) Encode(v interface{}) error {
-	if e.format == yamlformat.FormatJSON {
+	if e.format == FormatJSON {
 		encoder := yamlformat.NewJSONEncoder(e.writer, e.options...)
 		return encoder.Encode(v)
 	}

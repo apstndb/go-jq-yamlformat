@@ -30,7 +30,6 @@ import (
     "os"
     
     "github.com/apstndb/go-jq-yamlformat"
-    "github.com/apstndb/go-yamlformat"
 )
 
 func main() {
@@ -53,7 +52,7 @@ func main() {
     
     // Execute the pipeline
     err = p.Execute(context.Background(), data,
-        jqyaml.WithWriter(os.Stdout, yamlformat.FormatYAML),
+        jqyaml.WithWriter(os.Stdout, jqyaml.FormatYAML),
     )
     if err != nil {
         panic(err)
@@ -71,7 +70,7 @@ p, _ := jqyaml.New(
 )
 
 err := p.Execute(ctx, data,
-    jqyaml.WithWriter(os.Stdout, yamlformat.FormatJSON),
+    jqyaml.WithWriter(os.Stdout, jqyaml.FormatJSON),
     jqyaml.WithVariables(map[string]interface{}{
         "since": time.Now().Add(-24 * time.Hour),
     }),
@@ -133,7 +132,7 @@ p, _ := jqyaml.New(
 // Use the same pipeline with different data and variables
 for _, dataset := range datasets {
     err := p.Execute(ctx, dataset,
-        jqyaml.WithWriter(os.Stdout, yamlformat.FormatYAML),
+        jqyaml.WithWriter(os.Stdout, jqyaml.FormatYAML),
         jqyaml.WithVariables(map[string]interface{}{
             "status": "active",
         }),
