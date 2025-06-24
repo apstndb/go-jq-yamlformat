@@ -11,6 +11,6 @@ require (
 )
 
 require (
-	github.com/apstndb/go-yamlformat v0.0.0-20250624140928-33a000691b17 // indirect
+	github.com/apstndb/go-yamlformat v0.0.0-20250624144133-5961930dd0ba // indirect
 	github.com/itchyny/timefmt-go v0.1.6 // indirect
 )
