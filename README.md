@@ -8,7 +8,7 @@
 ## Features
 
 - **Seamless Integration**: Combines the power of jq queries with flexible YAML/JSON formatting
-- **Type-Safe**: Preserves Go type information through custom marshalers
+- **Struct Support**: Accept any Go struct with customizable JSON marshaling via UseJSONMarshaler
 - **Flexible API**: Uses functional options pattern for clean, extensible configuration
 - **Streaming Support**: Process large datasets efficiently with streaming execution
 - **Context-Aware**: Full support for context cancellation and timeouts
@@ -82,6 +82,7 @@ err := p.Execute(ctx, data,
 
 ```go
 import (
+    "strconv"
     "github.com/goccy/go-yaml"
     "github.com/google/uuid"
 )
@@ -91,11 +92,11 @@ p, _ := jqyaml.New(
     jqyaml.WithDefaultEncodeOptions(
         // Custom marshaler for time.Time
         yaml.CustomMarshaler[time.Time](func(t time.Time) ([]byte, error) {
-            return []byte(fmt.Sprintf(`"%s"`, t.Format(time.RFC3339))), nil
+            return []byte(strconv.Quote(t.Format(time.RFC3339))), nil
         }),
         // Custom marshaler for UUID
         yaml.CustomMarshaler[uuid.UUID](func(u uuid.UUID) ([]byte, error) {
-            return []byte(fmt.Sprintf(`"%s"`, u.String())), nil
+            return []byte(strconv.Quote(u.String())), nil
         }),
     ),
 )
