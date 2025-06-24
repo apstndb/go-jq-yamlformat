@@ -6,6 +6,7 @@ import (
 	"log"
 	"math/big"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/apstndb/go-jq-yamlformat"
@@ -77,7 +78,7 @@ func main() {
 		jqyaml.WithDefaultEncodeOptions(
 			// Custom marshaler for time.Time
 			yaml.CustomMarshaler[time.Time](func(t time.Time) ([]byte, error) {
-				return []byte(fmt.Sprintf(`"%s"`, t.Format(time.RFC3339))), nil
+				return []byte(strconv.Quote(t.Format(time.RFC3339))), nil
 			}),
 			// Custom marshaler for UserID
 			yaml.CustomMarshaler[UserID](func(id UserID) ([]byte, error) {
@@ -127,7 +128,7 @@ func main() {
 		jqyaml.WithDefaultEncodeOptions(
 			yaml.CustomMarshaler[time.Time](func(t time.Time) ([]byte, error) {
 				// Different format for this example
-				return []byte(fmt.Sprintf(`"%s"`, t.Format("2006-01-02 15:04:05"))), nil
+				return []byte(strconv.Quote(t.Format("2006-01-02 15:04:05"))), nil
 			}),
 			yaml.CustomMarshaler[Currency](func(c Currency) ([]byte, error) {
 				// Simplified format

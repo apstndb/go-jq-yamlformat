@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/apstndb/go-jq-yamlformat"
@@ -39,7 +40,7 @@ func main() {
 		jqyaml.WithQuery(".items[]"),
 		jqyaml.WithDefaultEncodeOptions(
 			yaml.CustomMarshaler[time.Time](func(t time.Time) ([]byte, error) {
-				return []byte(fmt.Sprintf(`"%s"`, t.Format(time.RFC3339))), nil
+				return []byte(strconv.Quote(t.Format(time.RFC3339))), nil
 			}),
 		),
 	)
