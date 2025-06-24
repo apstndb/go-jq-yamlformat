@@ -1,3 +1,5 @@
+github.com/MakeNowJust/heredoc/v2 v2.0.1 h1:rlCHh70XXXv7toz95ajQWOWQnN4WNLt0TdpZYIR/J6A=
+github.com/MakeNowJust/heredoc/v2 v2.0.1/go.mod h1:6/2Abh5s+hc3g9nbWLe9ObDIOhaRrqsyY9MWy+4JdRM=
 github.com/apstndb/go-yamlformat v0.0.0-20250624080809-593ba2da569d h1:zRgNigAtm61iXpSKkXJgg+m4s1Dn8yJq/Euhg76oHg8=
 github.com/apstndb/go-yamlformat v0.0.0-20250624080809-593ba2da569d/go.mod h1:adI+0n+0AY1J+qhb7UbW3HjsUD15JCQPIih7FHLcrI4=
 github.com/apstndb/go-yamlformat v0.0.0-20250624140928-33a000691b17 h1:ztWV7RaIZcMqHObmA6XqtmtF5BwPXwLSK6d9nVmBFso=

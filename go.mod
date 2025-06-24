@@ -11,6 +11,7 @@ require (
 )
 
 require (
+	github.com/MakeNowJust/heredoc/v2 v2.0.1 // indirect
 	github.com/apstndb/go-yamlformat v0.0.0-20250624144133-5961930dd0ba // indirect
 	github.com/itchyny/timefmt-go v0.1.6 // indirect
 )

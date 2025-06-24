@@ -117,27 +117,21 @@ func (p *pipeline) Execute(ctx context.Context, input interface{}, opts ...Execu
 		}
 	}
 	
-	// Process with jq
-	if cfg.callback != nil {
-		// Streaming mode
-		return p.streamingProcess(ctx, jsonData, cfg.variables, allEncodeOpts, cfg.callback, cfg.timeout)
+	// Determine callback
+	callback := cfg.callback
+	if callback == nil && cfg.encoder != nil {
+		// Apply encode options if encoder supports them
+		if encodeOptsSetter, ok := cfg.encoder.(interface {
+			SetOptions(...yaml.EncodeOption)
+		}); ok {
+			encodeOptsSetter.SetOptions(allEncodeOpts...)
+		}
+		// Use encoder.Encode as callback
+		callback = cfg.encoder.Encode
 	}
 	
-	// Normal mode
-	result, err := p.processJQ(ctx, jsonData, cfg.variables, allEncodeOpts)
-	if err != nil {
-		return err
-	}
-	
-	// Apply encode options if encoder supports them
-	if encodeOptsSetter, ok := cfg.encoder.(interface {
-		SetOptions(...yaml.EncodeOption)
-	}); ok {
-		encodeOptsSetter.SetOptions(allEncodeOpts...)
-	}
-	
-	// Encode output
-	return cfg.encoder.Encode(result)
+	// Process with streaming (works for both callback and encoder modes)
+	return p.streamingProcess(ctx, jsonData, cfg.variables, allEncodeOpts, callback, cfg.timeout)
 }
 
 // streamingProcess processes data through jq with streaming callback
@@ -180,25 +174,6 @@ func (p *pipeline) streamingProcess(ctx context.Context, data interface{}, varia
 	return nil
 }
 
-// processJQ processes data through jq with variables
-func (p *pipeline) processJQ(ctx context.Context, data interface{}, variables map[string]interface{}, encodeOpts []yaml.EncodeOption) (interface{}, error) {
-	// If no query, return data as-is
-	if p.query == "" {
-		return data, nil
-	}
-	
-	// Convert variables to jq-compatible format with same options
-	convertedVars, err := p.convertVariables(variables, encodeOpts)
-	if err != nil {
-		return nil, err
-	}
-	
-	// Run query
-	iter := p.runQueryWithVariables(ctx, data, convertedVars)
-	
-	// Collect results
-	return collectResults(ctx, iter)
-}
 
 // convertVariables converts variables to jq-compatible format
 func (p *pipeline) convertVariables(variables map[string]interface{}, encodeOpts []yaml.EncodeOption) (map[string]interface{}, error) {
@@ -276,32 +251,6 @@ func (e *errorIter) Next() (interface{}, bool) {
 	return e.err, true
 }
 
-// collectResults collects all results from an iterator
-func collectResults(ctx context.Context, iter gojq.Iter) (interface{}, error) {
-	var results []interface{}
-	for {
-		v, ok := iter.Next()
-		if !ok {
-			break
-		}
-		if err, ok := v.(error); ok {
-			if err == context.DeadlineExceeded {
-				return nil, err
-			}
-			return nil, err
-		}
-		results = append(results, v)
-	}
-	
-	switch len(results) {
-	case 0:
-		return nil, nil
-	case 1:
-		return results[0], nil
-	default:
-		return results, nil
-	}
-}
 
 // convertToJQCompatible converts any Go value to gojq-compatible types
 func convertToJQCompatible(v interface{}, opts ...yaml.EncodeOption) (interface{}, error) {

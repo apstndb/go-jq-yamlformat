@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/MakeNowJust/heredoc/v2"
 	"github.com/apstndb/go-jq-yamlformat"
 	"github.com/apstndb/go-yamlformat"
 	"github.com/goccy/go-yaml"
@@ -91,8 +92,9 @@ func TestExecute(t *testing.T) {
 			query:      ".",
 			data:       map[string]interface{}{"foo": "bar"},
 			format:     yamlformat.FormatJSON,
-			wantOutput: `{"foo": "bar"}
-`,
+			wantOutput: heredoc.Doc(`
+				{"foo": "bar"}
+			`),
 		},
 		{
 			name:  "array filtering",
@@ -104,9 +106,11 @@ func TestExecute(t *testing.T) {
 					{"id": 3, "active": true},
 				},
 			},
-			format:     yamlformat.FormatJSON,
-			wantOutput: `[{"active": true, "id": 1}, {"active": true, "id": 3}]
-`,
+			format: yamlformat.FormatJSON,
+			wantOutput: heredoc.Doc(`
+				{"active": true, "id": 1}
+				{"active": true, "id": 3}
+			`),
 		},
 		{
 			name:  "with variables",
@@ -116,7 +120,10 @@ func TestExecute(t *testing.T) {
 			variables: map[string]interface{}{
 				"threshold": 10,
 			},
-			wantOutput: "[15, 20]\n",
+			wantOutput: heredoc.Doc(`
+				15
+				20
+			`),
 		},
 		{
 			name:  "yaml output",
@@ -125,8 +132,14 @@ func TestExecute(t *testing.T) {
 				"name": "test",
 				"items": []string{"a", "b", "c"},
 			},
-			format:     yamlformat.FormatYAML,
-			wantOutput: "items:\n- a\n- b\n- c\nname: test\n",
+			format: yamlformat.FormatYAML,
+			wantOutput: heredoc.Doc(`
+				items:
+				- a
+				- b
+				- c
+				name: test
+			`),
 		},
 	}
 
@@ -334,13 +347,19 @@ func TestComplexVariables(t *testing.T) {
 	}
 
 	// Should return items 1 and 2 (both have value >= 10 and contain tag "b")
-	// The results are collected into an array
-	var results []interface{}
-	if err := yamlformat.Unmarshal(buf.Bytes(), &results); err != nil {
-		t.Fatalf("failed to unmarshal results: %v", err)
+	// Now outputs separate JSON objects like jq does
+	output := buf.String()
+	lines := strings.Split(strings.TrimSpace(output), "\n")
+	if len(lines) != 2 {
+		t.Errorf("expected 2 results, got %d: %s", len(lines), output)
 	}
-	if len(results) != 2 {
-		t.Errorf("expected 2 results, got %d", len(results))
+	
+	// Verify each line is valid JSON
+	for i, line := range lines {
+		var result map[string]interface{}
+		if err := yamlformat.Unmarshal([]byte(line), &result); err != nil {
+			t.Fatalf("failed to unmarshal result %d: %v", i, err)
+		}
 	}
 }
 
