@@ -328,11 +328,7 @@ type encoderWrapper struct {
 }
 
 func (e *encoderWrapper) Encode(v interface{}) error {
-	if e.format == FormatJSON {
-		encoder := yamlformat.NewJSONEncoder(e.writer, e.options...)
-		return encoder.Encode(v)
-	}
-	encoder := yamlformat.NewEncoder(e.writer, e.options...)
+	encoder := e.format.NewEncoder(e.writer, e.options...)
 	return encoder.Encode(v)
 }
 
