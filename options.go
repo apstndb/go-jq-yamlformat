@@ -6,6 +6,7 @@ import (
 
 	yamlformat "github.com/apstndb/go-yamlformat"
 	"github.com/goccy/go-yaml"
+	"github.com/itchyny/gojq"
 )
 
 // Option configures a Pipeline
@@ -24,6 +25,14 @@ func WithQuery(query string) Option {
 func WithDefaultEncodeOptions(opts ...yaml.EncodeOption) Option {
 	return func(p *pipeline) error {
 		p.defaultEncodeOptions = append(p.defaultEncodeOptions, opts...)
+		return nil
+	}
+}
+
+// WithCompilerOptions sets gojq compiler options
+func WithCompilerOptions(opts ...gojq.CompilerOption) Option {
+	return func(p *pipeline) error {
+		p.compilerOptions = append(p.compilerOptions, opts...)
 		return nil
 	}
 }

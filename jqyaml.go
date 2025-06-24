@@ -29,6 +29,7 @@ type pipeline struct {
 	query                string
 	compiled             *gojq.Code
 	defaultEncodeOptions []yaml.EncodeOption
+	compilerOptions      []gojq.CompilerOption
 }
 
 // executeConfig holds execution-specific configuration
@@ -232,14 +233,14 @@ func (p *pipeline) runQueryWithVariables(ctx context.Context, data interface{}, 
 		}
 	}
 	
-	// Compile with variables
+	// Compile with variables and user-provided compiler options
 	var code *gojq.Code
 	var err error
+	opts := append([]gojq.CompilerOption{}, p.compilerOptions...)
 	if len(varNames) > 0 {
-		code, err = gojq.Compile(parsed, gojq.WithVariables(varNames))
-	} else {
-		code, err = gojq.Compile(parsed)
+		opts = append(opts, gojq.WithVariables(varNames))
 	}
+	code, err = gojq.Compile(parsed, opts...)
 	if err != nil {
 		// Return an iterator that yields the error
 		return &errorIter{err: &QueryError{

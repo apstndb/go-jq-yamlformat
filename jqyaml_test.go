@@ -11,6 +11,7 @@ import (
 	"github.com/apstndb/go-jq-yamlformat"
 	"github.com/apstndb/go-yamlformat"
 	"github.com/goccy/go-yaml"
+	"github.com/itchyny/gojq"
 )
 
 func TestNew(t *testing.T) {
@@ -378,5 +379,41 @@ func TestEncodeOptions(t *testing.T) {
 	// Check for indentation
 	if !strings.Contains(output, "    ") {
 		t.Error("expected 4-space indentation")
+	}
+}
+
+func TestCompilerOptions(t *testing.T) {
+	// Test with custom function
+	p, err := jqyaml.New(
+		jqyaml.WithQuery("map(. + 1) | map(double)"),
+		jqyaml.WithCompilerOptions(
+			gojq.WithFunction("double", 0, 0, func(x any, _ []any) any {
+				switch v := x.(type) {
+				case int:
+					return v * 2
+				case float64:
+					return v * 2
+				default:
+					return v
+				}
+			}),
+		),
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var buf bytes.Buffer
+	err = p.Execute(context.Background(), []int{1, 2, 3},
+		jqyaml.WithWriter(&buf, yamlformat.FormatJSON),
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Expected: [1,2,3] -> [2,3,4] -> [4,6,8]
+	expected := "[4, 6, 8]"
+	if got := strings.TrimSpace(buf.String()); got != expected {
+		t.Errorf("Expected %s, got %s", expected, got)
 	}
 }
