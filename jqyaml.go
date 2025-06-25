@@ -356,9 +356,15 @@ func (e *jsonEncoder) Encode(v interface{}) error {
 	// Handle raw output for strings
 	if e.raw {
 		if s, ok := v.(string); ok {
-			_, err := io.WriteString(e.writer, s)
-			e.needNewline = true
-			return err
+			if _, err := io.WriteString(e.writer, s); err != nil {
+				return err
+			}
+			// Add newline after the string
+			if _, err := e.writer.Write([]byte("\n")); err != nil {
+				return err
+			}
+			e.needNewline = false
+			return nil
 		}
 	}
 
@@ -366,7 +372,8 @@ func (e *jsonEncoder) Encode(v interface{}) error {
 	encoder := json.NewEncoder(e.writer)
 	// By default, json.Encoder produces compact output
 	// Only set indent for non-compact (pretty) output
-	if !e.compact {
+	// Note: raw output should always be compact for non-strings
+	if !e.compact && !e.raw {
 		encoder.SetIndent("", "  ")
 	}
 	

@@ -123,7 +123,7 @@ func TestRawOutput(t *testing.T) {
 			query:    ".message",
 			format:   jqyaml.FormatJSON,
 			raw:      true,
-			expected: "Hello, World!",
+			expected: "Hello, World!\n",
 		},
 		{
 			name:     "normal string output",
@@ -141,7 +141,7 @@ func TestRawOutput(t *testing.T) {
 			query:    ".items[]",
 			format:   jqyaml.FormatJSON,
 			raw:      true,
-			expected: "apple\nbanana\ncherry",
+			expected: "apple\nbanana\ncherry\n",
 		},
 		{
 			name: "raw output with non-string falls back to JSON",
@@ -152,7 +152,7 @@ func TestRawOutput(t *testing.T) {
 			query:    ".number, .string",
 			format:   jqyaml.FormatJSON,
 			raw:      true,
-			expected: "42\ntest",
+			expected: "42\ntest\n",
 		},
 		{
 			name:     "raw option ignored for YAML",
@@ -222,7 +222,7 @@ func TestCombinedCompactAndRawOutput(t *testing.T) {
 			query:    ".lines[]",
 			compact:  true,
 			raw:      true,
-			expected: "line 1\nline 2\nline 3",
+			expected: "line 1\nline 2\nline 3\n",
 		},
 	}
 
@@ -354,7 +354,7 @@ func TestFormatOptionsDocumentation(t *testing.T) {
 			t.Fatal(err)
 		}
 		
-		if jsonBuf.String() != "hello" {
+		if jsonBuf.String() != "hello\n" {
 			t.Error("JSON string output should be raw (no quotes)")
 		}
 		
