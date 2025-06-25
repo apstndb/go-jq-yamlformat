@@ -198,23 +198,23 @@ p, _ := jqyaml.New(
 // Compact JSON output (no pretty-printing)
 err := p.Execute(ctx, data,
     jqyaml.WithWriter(os.Stdout, jqyaml.FormatJSON),
-    jqyaml.WithCompactOutput(), // {"id":1,"name":"Alice"}
+    jqyaml.WithCompactJSONOutput(), // {"id":1,"name":"Alice"}
 )
 
 // Pretty JSON output with indentation
 err := p.Execute(ctx, data,
     jqyaml.WithWriter(os.Stdout, jqyaml.FormatJSON),
-    jqyaml.WithPrettyOutput(), // {
-                               //   "id": 1,
-                               //   "name": "Alice"
-                               // }
+    jqyaml.WithPrettyJSONOutput(), // {
+                                   //   "id": 1,
+                                   //   "name": "Alice"
+                                   // }
 )
 
 // Raw string output (no JSON quotes)
 p, _ := jqyaml.New(jqyaml.WithQuery(".message"))
 err := p.Execute(ctx, map[string]interface{}{"message": "Hello, World!"},
     jqyaml.WithWriter(os.Stdout, jqyaml.FormatJSON),
-    jqyaml.WithRawOutput(), // Hello, World!
+    jqyaml.WithRawJSONOutput(), // Hello, World!
 )
 
 // Note: These options only apply to JSON format and are ignored for YAML
@@ -239,9 +239,9 @@ err := p.Execute(ctx, map[string]interface{}{"message": "Hello, World!"},
 - `WithTimeout(timeout time.Duration) ExecuteOption` - Sets execution timeout
 - `WithEncodeOptions(opts ...yaml.EncodeOption) ExecuteOption` - Sets additional encoding options
 - `WithCallback(callback func(interface{}) error) ExecuteOption` - Sets callback for streaming mode
-- `WithCompactOutput() ExecuteOption` - Enables compact JSON output (no pretty-printing). **Only applies to JSON format**
-- `WithPrettyOutput() ExecuteOption` - Enables pretty JSON output with indentation. **Only applies to JSON format**
-- `WithRawOutput() ExecuteOption` - Outputs raw strings without JSON quotes. **Only applies to JSON format**
+- `WithCompactJSONOutput() ExecuteOption` - Enables compact JSON output (no pretty-printing). **Only applies to JSON format**
+- `WithPrettyJSONOutput() ExecuteOption` - Enables pretty JSON output with indentation. **Only applies to JSON format**
+- `WithRawJSONOutput() ExecuteOption` - Outputs raw strings without JSON quotes. **Only applies to JSON format**
 
 ### Error Types
 

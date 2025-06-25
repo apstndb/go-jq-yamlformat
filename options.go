@@ -166,28 +166,28 @@ func WithCallback(callback func(interface{}) error) ExecuteOption {
 	}
 }
 
-// WithCompactOutput enables compact JSON output (no pretty-printing)
+// WithCompactJSONOutput enables compact JSON output (no pretty-printing)
 // This option only applies to JSON output format and is ignored for YAML
-func WithCompactOutput() ExecuteOption {
+func WithCompactJSONOutput() ExecuteOption {
 	return func(c *executeConfig) {
 		c.compactOutputSet = true
 		c.compactOutput = true
 	}
 }
 
-// WithPrettyOutput enables pretty JSON output with indentation
+// WithPrettyJSONOutput enables pretty JSON output with indentation
 // This option only applies to JSON output format and is ignored for YAML
-func WithPrettyOutput() ExecuteOption {
+func WithPrettyJSONOutput() ExecuteOption {
 	return func(c *executeConfig) {
 		c.compactOutputSet = true
 		c.compactOutput = false
 	}
 }
 
-// WithRawOutput enables raw output for string values (no JSON quotes)
+// WithRawJSONOutput enables raw output for string values (no JSON quotes)
 // This option only applies to JSON output format and is ignored for YAML
 // When enabled, string values are written directly without JSON encoding
-func WithRawOutput() ExecuteOption {
+func WithRawJSONOutput() ExecuteOption {
 	return func(c *executeConfig) {
 		c.rawOutput = true
 	}

@@ -89,9 +89,9 @@ func TestCompactOutput(t *testing.T) {
 			}
 			if tt.compact != nil {
 				if *tt.compact {
-					opts = append(opts, jqyaml.WithCompactOutput())
+					opts = append(opts, jqyaml.WithCompactJSONOutput())
 				} else {
-					opts = append(opts, jqyaml.WithPrettyOutput())
+					opts = append(opts, jqyaml.WithPrettyJSONOutput())
 				}
 			}
 
@@ -176,7 +176,7 @@ func TestRawOutput(t *testing.T) {
 				jqyaml.WithWriter(&buf, tt.format),
 			}
 			if tt.raw {
-				opts = append(opts, jqyaml.WithRawOutput())
+				opts = append(opts, jqyaml.WithRawJSONOutput())
 			}
 
 			err = p.Execute(context.Background(), tt.input, opts...)
@@ -238,10 +238,10 @@ func TestCombinedCompactAndRawOutput(t *testing.T) {
 				jqyaml.WithWriter(&buf, jqyaml.FormatJSON),
 			}
 			if tt.compact {
-				opts = append(opts, jqyaml.WithCompactOutput())
+				opts = append(opts, jqyaml.WithCompactJSONOutput())
 			}
 			if tt.raw {
-				opts = append(opts, jqyaml.WithRawOutput())
+				opts = append(opts, jqyaml.WithRawJSONOutput())
 			}
 
 			err = p.Execute(context.Background(), tt.input, opts...)
@@ -278,8 +278,8 @@ func TestFormatOptionsWithCallback(t *testing.T) {
 			}
 			return nil
 		}),
-		jqyaml.WithCompactOutput(), // Should be ignored in callback mode
-		jqyaml.WithRawOutput(),     // Should be ignored in callback mode
+		jqyaml.WithCompactJSONOutput(), // Should be ignored in callback mode
+		jqyaml.WithRawJSONOutput(),     // Should be ignored in callback mode
 	)
 
 	if err != nil {
@@ -295,8 +295,8 @@ func TestFormatOptionsWithCallback(t *testing.T) {
 func TestFormatOptionsDocumentation(t *testing.T) {
 	// This test verifies the documented behavior of format options
 	
-	t.Run("WithCompactOutput documentation", func(t *testing.T) {
-		// Verify that WithCompactOutput only affects JSON output
+	t.Run("WithCompactJSONOutput documentation", func(t *testing.T) {
+		// Verify that WithCompactJSONOutput only affects JSON output
 		p, err := jqyaml.New(jqyaml.WithQuery("."))
 		if err != nil {
 			t.Fatal(err)
@@ -308,7 +308,7 @@ func TestFormatOptionsDocumentation(t *testing.T) {
 		var jsonBuf bytes.Buffer
 		err = p.Execute(context.Background(), data,
 			jqyaml.WithWriter(&jsonBuf, jqyaml.FormatJSON),
-			jqyaml.WithCompactOutput(),
+			jqyaml.WithCompactJSONOutput(),
 		)
 		if err != nil {
 			t.Fatal(err)
@@ -323,7 +323,7 @@ func TestFormatOptionsDocumentation(t *testing.T) {
 		var yamlBuf bytes.Buffer
 		err = p.Execute(context.Background(), data,
 			jqyaml.WithWriter(&yamlBuf, jqyaml.FormatYAML),
-			jqyaml.WithCompactOutput(),
+			jqyaml.WithCompactJSONOutput(),
 		)
 		if err != nil {
 			t.Fatal(err)
@@ -331,12 +331,12 @@ func TestFormatOptionsDocumentation(t *testing.T) {
 		
 		// YAML output should be the same regardless of compact option
 		if yamlBuf.String() != "test: true\n" {
-			t.Error("YAML output should not be affected by WithCompactOutput")
+			t.Error("YAML output should not be affected by WithCompactJSONOutput")
 		}
 	})
 	
-	t.Run("WithRawOutput documentation", func(t *testing.T) {
-		// Verify that WithRawOutput only affects JSON string output
+	t.Run("WithRawJSONOutput documentation", func(t *testing.T) {
+		// Verify that WithRawJSONOutput only affects JSON string output
 		p, err := jqyaml.New(jqyaml.WithQuery("."))
 		if err != nil {
 			t.Fatal(err)
@@ -348,7 +348,7 @@ func TestFormatOptionsDocumentation(t *testing.T) {
 		var jsonBuf bytes.Buffer
 		err = p.Execute(context.Background(), data,
 			jqyaml.WithWriter(&jsonBuf, jqyaml.FormatJSON),
-			jqyaml.WithRawOutput(),
+			jqyaml.WithRawJSONOutput(),
 		)
 		if err != nil {
 			t.Fatal(err)
@@ -362,7 +362,7 @@ func TestFormatOptionsDocumentation(t *testing.T) {
 		var numBuf bytes.Buffer
 		err = p.Execute(context.Background(), 42,
 			jqyaml.WithWriter(&numBuf, jqyaml.FormatJSON),
-			jqyaml.WithRawOutput(),
+			jqyaml.WithRawJSONOutput(),
 		)
 		if err != nil {
 			t.Fatal(err)
