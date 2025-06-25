@@ -132,10 +132,9 @@ func WithEncoder(encoder Encoder) ExecuteOption {
 // WithWriter sets the output writer and format
 func WithWriter(w io.Writer, format Format) ExecuteOption {
 	return func(c *executeConfig) {
-		c.encoder = &encoderWrapper{
-			writer: w,
-			format: format,
-		}
+		// Store the writer and format for later processing in Execute
+		c.writer = w
+		c.format = format
 	}
 }
 
@@ -164,5 +163,32 @@ func WithEncodeOptions(opts ...yaml.EncodeOption) ExecuteOption {
 func WithCallback(callback func(interface{}) error) ExecuteOption {
 	return func(c *executeConfig) {
 		c.callback = callback
+	}
+}
+
+// WithCompactOutput enables compact JSON output (no pretty-printing)
+// This option only applies to JSON output format and is ignored for YAML
+func WithCompactOutput() ExecuteOption {
+	return func(c *executeConfig) {
+		c.compactOutputSet = true
+		c.compactOutput = true
+	}
+}
+
+// WithPrettyOutput enables pretty JSON output with indentation
+// This option only applies to JSON output format and is ignored for YAML
+func WithPrettyOutput() ExecuteOption {
+	return func(c *executeConfig) {
+		c.compactOutputSet = true
+		c.compactOutput = false
+	}
+}
+
+// WithRawOutput enables raw output for string values (no JSON quotes)
+// This option only applies to JSON output format and is ignored for YAML
+// When enabled, string values are written directly without JSON encoding
+func WithRawOutput() ExecuteOption {
+	return func(c *executeConfig) {
+		c.rawOutput = true
 	}
 }

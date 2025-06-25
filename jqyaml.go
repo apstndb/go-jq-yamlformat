@@ -3,6 +3,7 @@ package jqyaml
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"sort"
@@ -50,11 +51,16 @@ type pipeline struct {
 
 // executeConfig holds execution-specific configuration
 type executeConfig struct {
-	encoder       Encoder
-	callback      func(interface{}) error // For streaming mode
-	variables     map[string]interface{}
-	timeout       time.Duration
-	encodeOptions []yaml.EncodeOption
+	encoder             Encoder
+	writer              io.Writer
+	format              Format
+	callback            func(interface{}) error // For streaming mode
+	variables           map[string]interface{}
+	timeout             time.Duration
+	encodeOptions       []yaml.EncodeOption
+	compactOutputSet    bool // Whether compactOutput was explicitly set
+	compactOutput       bool // For JSON output only
+	rawOutput           bool // For JSON output only
 }
 
 // New creates a new Pipeline with the given options
@@ -94,6 +100,20 @@ func (p *pipeline) Execute(ctx context.Context, input interface{}, opts ...Execu
 	// Apply options
 	for _, opt := range opts {
 		opt(cfg)
+	}
+	
+	// Handle WithWriter case - create appropriate encoder
+	if cfg.writer != nil && cfg.encoder == nil {
+		if cfg.format == FormatJSON && (cfg.compactOutputSet || cfg.rawOutput) {
+			// Use custom JSON encoder only when compact/raw options are explicitly set
+			cfg.encoder = newJSONEncoder(cfg.writer, cfg.compactOutput, cfg.rawOutput)
+		} else {
+			// Use standard encoder wrapper for default behavior
+			cfg.encoder = &encoderWrapper{
+				writer: cfg.writer,
+				format: cfg.format,
+			}
+		}
 	}
 	
 	// Ensure either encoder or callback is set
@@ -306,4 +326,51 @@ func (e *encoderWrapper) Encode(v interface{}) error {
 
 func (e *encoderWrapper) SetOptions(opts ...yaml.EncodeOption) {
 	e.options = append(e.options, opts...)
+}
+
+// jsonEncoder implements custom JSON encoding with compact and raw output support
+type jsonEncoder struct {
+	writer        io.Writer
+	compact       bool
+	raw           bool
+	needNewline   bool
+}
+
+func newJSONEncoder(w io.Writer, compact, raw bool) *jsonEncoder {
+	return &jsonEncoder{
+		writer:      w,
+		compact:     compact,
+		raw:         raw,
+		needNewline: false,
+	}
+}
+
+func (e *jsonEncoder) Encode(v interface{}) error {
+	// Add newline before next item if needed (for raw output)
+	if e.needNewline {
+		if _, err := e.writer.Write([]byte("\n")); err != nil {
+			return err
+		}
+	}
+
+	// Handle raw output for strings
+	if e.raw {
+		if s, ok := v.(string); ok {
+			_, err := io.WriteString(e.writer, s)
+			e.needNewline = true
+			return err
+		}
+	}
+
+	// Use standard JSON encoder
+	encoder := json.NewEncoder(e.writer)
+	// By default, json.Encoder produces compact output
+	// Only set indent for non-compact (pretty) output
+	if !e.compact {
+		encoder.SetIndent("", "  ")
+	}
+	
+	err := encoder.Encode(v)
+	e.needNewline = false // json.Encoder already adds newline
+	return err
 }
