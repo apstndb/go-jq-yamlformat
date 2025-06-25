@@ -24,6 +24,12 @@ type Encoder interface {
 	Encode(v interface{}) error
 }
 
+// InputMarshaler defines the interface for custom input marshaling
+// It converts Go values to gojq-compatible types (nil, bool, int, float64, *big.Int, string, []any, map[string]any)
+type InputMarshaler interface {
+	Marshal(v interface{}) (interface{}, error)
+}
+
 // Format represents the output format (YAML or JSON)
 type Format = yamlformat.Format
 
@@ -39,6 +45,7 @@ type pipeline struct {
 	compiled             *gojq.Code
 	defaultEncodeOptions []yaml.EncodeOption
 	compilerOptions      []gojq.CompilerOption
+	inputMarshaler       InputMarshaler
 }
 
 // executeConfig holds execution-specific configuration
@@ -107,8 +114,15 @@ func (p *pipeline) Execute(ctx context.Context, input interface{}, opts ...Execu
 	// Combine encode options (default + execution-specific)
 	allEncodeOpts := append(p.defaultEncodeOptions, cfg.encodeOptions...)
 	
-	// Convert input to jq-compatible format using the same encode options
-	jsonData, err := convertToJQCompatible(input, allEncodeOpts...)
+	// Determine which input marshaler to use
+	marshaler := p.inputMarshaler
+	if marshaler == nil {
+		// Use default marshaler with current encode options
+		marshaler = &defaultInputMarshaler{encodeOptions: allEncodeOpts}
+	}
+	
+	// Convert input to jq-compatible format using the input marshaler
+	jsonData, err := marshaler.Marshal(input)
 	if err != nil {
 		return &ConversionError{
 			Value: input,
@@ -131,18 +145,18 @@ func (p *pipeline) Execute(ctx context.Context, input interface{}, opts ...Execu
 	}
 	
 	// Process with streaming (works for both callback and encoder modes)
-	return p.streamingProcess(ctx, jsonData, cfg.variables, allEncodeOpts, callback, cfg.timeout)
+	return p.streamingProcess(ctx, jsonData, cfg.variables, marshaler, callback, cfg.timeout)
 }
 
 // streamingProcess processes data through jq with streaming callback
-func (p *pipeline) streamingProcess(ctx context.Context, data interface{}, variables map[string]interface{}, encodeOpts []yaml.EncodeOption, callback func(interface{}) error, timeout time.Duration) error {
+func (p *pipeline) streamingProcess(ctx context.Context, data interface{}, variables map[string]interface{}, marshaler InputMarshaler, callback func(interface{}) error, timeout time.Duration) error {
 	// If no query, stream data as-is
 	if p.query == "" {
 		return callback(data)
 	}
 	
-	// Convert variables to jq-compatible format with same options
-	convertedVars, err := p.convertVariables(variables, encodeOpts)
+	// Convert variables to jq-compatible format using the same marshaler
+	convertedVars, err := p.convertVariables(variables, marshaler)
 	if err != nil {
 		return err
 	}
@@ -176,14 +190,14 @@ func (p *pipeline) streamingProcess(ctx context.Context, data interface{}, varia
 
 
 // convertVariables converts variables to jq-compatible format
-func (p *pipeline) convertVariables(variables map[string]interface{}, encodeOpts []yaml.EncodeOption) (map[string]interface{}, error) {
+func (p *pipeline) convertVariables(variables map[string]interface{}, marshaler InputMarshaler) (map[string]interface{}, error) {
 	if len(variables) == 0 {
 		return nil, nil
 	}
 	
 	convertedVars := make(map[string]interface{})
 	for k, v := range variables {
-		converted, err := convertToJQCompatible(v, encodeOpts...)
+		converted, err := marshaler.Marshal(v)
 		if err != nil {
 			return nil, &ConversionError{
 				Value: v,
@@ -267,6 +281,15 @@ func convertToJQCompatible(v interface{}, opts ...yaml.EncodeOption) (interface{
 	}
 	
 	return result, nil
+}
+
+// defaultInputMarshaler implements InputMarshaler using the existing convertToJQCompatible logic
+type defaultInputMarshaler struct {
+	encodeOptions []yaml.EncodeOption
+}
+
+func (d *defaultInputMarshaler) Marshal(v interface{}) (interface{}, error) {
+	return convertToJQCompatible(v, d.encodeOptions...)
 }
 
 // encoderWrapper wraps yamlformat encoders to support option setting

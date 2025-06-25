@@ -13,6 +13,7 @@
 - **Streaming Support**: Process large datasets efficiently with streaming execution
 - **Context-Aware**: Full support for context cancellation and timeouts
 - **Custom Encoding**: Support for custom type marshalers via go-yaml options
+- **Custom Input Marshaling**: Define custom input conversion logic for special types like Protocol Buffers
 
 ## Installation
 
@@ -159,6 +160,38 @@ err := p.Execute(ctx, data,
 )
 ```
 
+### Custom Input Marshaling
+
+```go
+// Define custom input marshaler for special types (e.g., Protocol Buffers)
+type protojsonMarshaler struct{}
+
+func (m *protojsonMarshaler) Marshal(v interface{}) (interface{}, error) {
+    if msg, ok := v.(proto.Message); ok {
+        // Use protojson for protobuf messages
+        b, err := protojson.Marshal(msg)
+        if err != nil {
+            return nil, err
+        }
+        var result interface{}
+        return result, json.Unmarshal(b, &result)
+    }
+    // Handle other types with default JSON marshaling
+    b, err := json.Marshal(v)
+    if err != nil {
+        return nil, err
+    }
+    var result interface{}
+    return result, json.Unmarshal(b, &result)
+}
+
+// Use with pipeline
+p, _ := jqyaml.New(
+    jqyaml.WithQuery(".users[] | select(.status == \"ACTIVE\")"),
+    jqyaml.WithInputMarshaler(&protojsonMarshaler{}),
+)
+```
+
 ## API Reference
 
 ### Pipeline Creation
@@ -166,6 +199,8 @@ err := p.Execute(ctx, data,
 - `New(opts ...Option) (Pipeline, error)` - Creates a new pipeline with options
 - `WithQuery(query string) Option` - Sets the jq query
 - `WithDefaultEncodeOptions(opts ...yaml.EncodeOption) Option` - Sets default encoding options
+- `WithInputMarshaler(marshaler InputMarshaler) Option` - Sets custom input marshaler for converting data to jq-compatible types
+- `WithCompilerOptions(opts ...gojq.CompilerOption) Option` - Sets gojq compiler options
 
 ### Execution Options
 
@@ -191,6 +226,7 @@ See the [examples](examples/) directory for more detailed examples:
 - [Custom Types](examples/custom-types/main.go)
 - [Streaming](examples/streaming/main.go)
 - [Error Handling](examples/errors/main.go)
+- [Protocol Buffers](examples/protobuf/main.go) - Using custom input marshaler for protobuf messages
 
 ## Design Principles
 
