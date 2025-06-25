@@ -1,0 +1,129 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    name: Test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        go-version: ['1.21', '1.22', '1.23']
+    
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v4
+    
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: ${{ matrix.go-version }}
+    
+    - name: Get dependencies
+      run: go mod download
+    
+    - name: Run tests
+      run: go test -v -race -coverprofile=coverage.txt -covermode=atomic ./...
+    
+    - name: Upload coverage to Codecov
+      if: matrix.os == 'ubuntu-latest' && matrix.go-version == '1.23'
+      uses: codecov/codecov-action@v4
+      with:
+        file: ./coverage.txt
+        flags: unittests
+        name: codecov-umbrella
+    
+    - name: Run go vet
+      run: go vet ./...
+    
+    - name: Check formatting
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        if [ "$(gofmt -s -l . | wc -l)" -gt 0 ]; then
+          echo "Found files that need formatting:"
+          gofmt -s -l .
+          exit 1
+        fi
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v4
+    
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.23'
+    
+    - name: Run golangci-lint
+      uses: golangci/golangci-lint-action@v6
+      with:
+        version: latest
+        args: --timeout=5m
+
+  examples:
+    name: Examples
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v4
+    
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.23'
+    
+    - name: Run examples
+      run: |
+        echo "Running examples..."
+        echo -e "\n=== Basic Example ==="
+        go run examples/basic/main.go
+        echo -e "\n=== Variables Example ==="
+        go run examples/variables/main.go
+        echo -e "\n=== Custom Types Example ==="
+        go run examples/custom-types/main.go
+        echo -e "\n=== Streaming Example ==="
+        go run examples/streaming/main.go
+        echo -e "\n=== Errors Example ==="
+        go run examples/errors/main.go
+        echo -e "\n=== Protobuf Example ==="
+        go run examples/protobuf/main.go
+
+  build-protobuf-example:
+    name: Build Protobuf Real Example
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v4
+    
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.23'
+    
+    - name: Install protoc
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y protobuf-compiler
+        go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+    
+    - name: Generate protobuf code
+      run: |
+        cd examples/protobuf-real
+        protoc --go_out=pb --go_opt=paths=source_relative example.proto
+    
+    - name: Build and run protobuf-real example
+      run: |
+        cd examples/protobuf-real
+        go build .
+        ./protobuf-real
