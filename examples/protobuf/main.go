@@ -2,18 +2,17 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log"
 	"os"
-	"reflect"
 
 	"github.com/apstndb/go-jq-yamlformat"
 	"github.com/apstndb/go-yamlformat"
 )
 
-// Example showing how to use WithInputMarshaler for Protocol Buffer messages
-// NOTE: This example demonstrates the pattern without actual protobuf dependencies
+// Example showing how to use WithProtojsonInput for Protocol Buffer messages
+// NOTE: This example uses mock types that simulate protobuf messages for demonstration
+// In a real application, you would use actual protobuf-generated types
 
 // MockProtoMessage simulates a proto.Message interface
 type MockProtoMessage interface {
@@ -35,68 +34,8 @@ type UserList struct {
 
 func (u *UserList) ProtoReflect() interface{} { return nil }
 
-// protojsonMarshaler demonstrates how to implement a custom marshaler for protobuf
-// In a real implementation, you would import:
-//   "google.golang.org/protobuf/encoding/protojson"
-//   "google.golang.org/protobuf/proto"
-type protojsonMarshaler struct{}
-
-func (m *protojsonMarshaler) Marshal(v interface{}) (interface{}, error) {
-	// Check if it's a proto.Message (using our mock interface)
-	if msg, ok := v.(MockProtoMessage); ok {
-		// In real implementation:
-		// b, err := protojson.Marshal(msg)
-		// For this example, we'll use regular JSON
-		b, err := json.Marshal(msg)
-		if err != nil {
-			return nil, err
-		}
-		var result interface{}
-		if err := json.Unmarshal(b, &result); err != nil {
-			return nil, err
-		}
-		return result, nil
-	}
-
-	// Handle slices that might contain proto.Message
-	rv := reflect.ValueOf(v)
-	if rv.Kind() == reflect.Slice {
-		result := make([]interface{}, rv.Len())
-		for i := 0; i < rv.Len(); i++ {
-			elem := rv.Index(i).Interface()
-			converted, err := m.Marshal(elem)
-			if err != nil {
-				return nil, err
-			}
-			result[i] = converted
-		}
-		return result, nil
-	}
-
-	// Handle maps recursively
-	if mapVal, ok := v.(map[string]interface{}); ok {
-		result := make(map[string]interface{})
-		for k, val := range mapVal {
-			converted, err := m.Marshal(val)
-			if err != nil {
-				return nil, err
-			}
-			result[k] = converted
-		}
-		return result, nil
-	}
-
-	// Fall back to default JSON marshaling for non-protobuf types
-	b, err := json.Marshal(v)
-	if err != nil {
-		return nil, err
-	}
-	var result interface{}
-	if err := json.Unmarshal(b, &result); err != nil {
-		return nil, err
-	}
-	return result, nil
-}
+// Note: WithProtojsonInput() now handles the protojson marshaling automatically
+// You no longer need to implement your own marshaler for basic protobuf support
 
 func main() {
 	// Sample data - in real usage, this would be actual protobuf messages
@@ -112,7 +51,7 @@ func main() {
 	fmt.Println("Example 1: Filter users by name")
 	p1, err := jqyaml.New(
 		jqyaml.WithQuery(`.users[] | select(.name == "Bob")`),
-		jqyaml.WithInputMarshaler(&protojsonMarshaler{}),
+		jqyaml.WithProtojsonInput(), // Now using the built-in function
 	)
 	if err != nil {
 		log.Fatal(err)
@@ -134,7 +73,7 @@ func main() {
 
 	p2, err := jqyaml.New(
 		jqyaml.WithQuery(`map({id: .id, display: (.name + " <" + .email + ">")})`),
-		jqyaml.WithInputMarshaler(&protojsonMarshaler{}),
+		jqyaml.WithProtojsonInput(),
 	)
 	if err != nil {
 		log.Fatal(err)
@@ -168,7 +107,7 @@ func main() {
 			active: .active_user.name,
 			all_emails: .users | map(.email)
 		}`),
-		jqyaml.WithInputMarshaler(&protojsonMarshaler{}),
+		jqyaml.WithProtojsonInput(),
 	)
 	if err != nil {
 		log.Fatal(err)
@@ -185,7 +124,7 @@ func main() {
 	fmt.Println("\nExample 4: Using variables with protobuf filtering")
 	p4, err := jqyaml.New(
 		jqyaml.WithQuery(`.users[] | select(.id == $target_id)`),
-		jqyaml.WithInputMarshaler(&protojsonMarshaler{}),
+		jqyaml.WithProtojsonInput(),
 	)
 	if err != nil {
 		log.Fatal(err)

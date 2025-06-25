@@ -1,9 +1,5 @@
 github.com/MakeNowJust/heredoc/v2 v2.0.1 h1:rlCHh70XXXv7toz95ajQWOWQnN4WNLt0TdpZYIR/J6A=
 github.com/MakeNowJust/heredoc/v2 v2.0.1/go.mod h1:6/2Abh5s+hc3g9nbWLe9ObDIOhaRrqsyY9MWy+4JdRM=
-github.com/apstndb/go-yamlformat v0.0.0-20250624080809-593ba2da569d h1:zRgNigAtm61iXpSKkXJgg+m4s1Dn8yJq/Euhg76oHg8=
-github.com/apstndb/go-yamlformat v0.0.0-20250624080809-593ba2da569d/go.mod h1:adI+0n+0AY1J+qhb7UbW3HjsUD15JCQPIih7FHLcrI4=
-github.com/apstndb/go-yamlformat v0.0.0-20250624140928-33a000691b17 h1:ztWV7RaIZcMqHObmA6XqtmtF5BwPXwLSK6d9nVmBFso=
-github.com/apstndb/go-yamlformat v0.0.0-20250624140928-33a000691b17/go.mod h1:adI+0n+0AY1J+qhb7UbW3HjsUD15JCQPIih7FHLcrI4=
 github.com/apstndb/go-yamlformat v0.0.0-20250624144133-5961930dd0ba h1:l9MMbSfCb/JBF3wY3HuDM6cB5Y0AzGkXbmVzQ87J1vU=
 github.com/apstndb/go-yamlformat v0.0.0-20250624144133-5961930dd0ba/go.mod h1:adI+0n+0AY1J+qhb7UbW3HjsUD15JCQPIih7FHLcrI4=
 github.com/goccy/go-yaml v1.18.0 h1:8W7wMFS12Pcas7KU+VVkaiCng+kG8QiFeFwzFb+rwuw=
@@ -14,3 +10,5 @@ github.com/itchyny/gojq v0.12.16 h1:yLfgLxhIr/6sJNVmYfQjTIv0jGctu6/DgDoivmxTr7g=
 github.com/itchyny/gojq v0.12.16/go.mod h1:6abHbdC2uB9ogMS38XsErnfqJ94UlngIJGlRAIj4jTM=
 github.com/itchyny/timefmt-go v0.1.6 h1:ia3s54iciXDdzWzwaVKXZPbiXzxxnv1SPGFfM/myJ5Q=
 github.com/itchyny/timefmt-go v0.1.6/go.mod h1:RRDZYC5s9ErkjQvTvvU7keJjxUYzIISJGxm9/mAERQg=
+google.golang.org/protobuf v1.36.6 h1:z1NpPI8ku2WgiWnf+t9wTPsn6eP1L7ksHUlkfLvd9xY=
+google.golang.org/protobuf v1.36.6/go.mod h1:jduwjTPXsFjZGTmRluh+L6NjiWu7pchiJ2/5YcXBHnY=

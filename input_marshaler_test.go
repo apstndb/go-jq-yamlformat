@@ -325,15 +325,38 @@ func TestWithInputMarshalerValidation(t *testing.T) {
 	}
 }
 
-// TestWithProtojsonInput tests the documentation function
+// TestWithProtojsonInput tests the protojson input marshaler
 func TestWithProtojsonInput(t *testing.T) {
-	_, err := jqyaml.New(
-		jqyaml.WithProtojsonInput(),
-	)
-	if err == nil {
-		t.Error("expected error for WithProtojsonInput, got nil")
-	}
-	if !strings.Contains(err.Error(), "WithProtojsonInput requires a custom implementation") {
-		t.Errorf("unexpected error message: %v", err)
-	}
+	// Note: This test uses the mock types from the protobuf example
+	// In a real scenario, you would use actual protobuf messages
+	
+	t.Run("basic functionality", func(t *testing.T) {
+		p, err := jqyaml.New(
+			jqyaml.WithQuery("."),
+			jqyaml.WithProtojsonInput(),
+		)
+		if err != nil {
+			t.Fatalf("failed to create pipeline with WithProtojsonInput: %v", err)
+		}
+		
+		// Test with a simple map (non-protobuf data should still work)
+		data := map[string]interface{}{
+			"test": "value",
+			"number": 42,
+		}
+		
+		var buf bytes.Buffer
+		err = p.Execute(context.Background(), data,
+			jqyaml.WithWriter(&buf, jqyaml.FormatJSON),
+		)
+		if err != nil {
+			t.Fatalf("execution failed: %v", err)
+		}
+		
+		expected := `{"number": 42, "test": "value"}`
+		got := strings.TrimSpace(buf.String())
+		if diff := cmp.Diff(expected, got); diff != "" {
+			t.Errorf("output mismatch (-want +got):\n%s", diff)
+		}
+	})
 }

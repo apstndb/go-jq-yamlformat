@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+package example;
+
+option go_package = "github.com/apstndb/go-jq-yamlformat/examples/protobuf-real/pb";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/duration.proto";
+import "google/protobuf/struct.proto";
+import "google/protobuf/any.proto";
+
+// User represents a user with various Well-Known Types
+message User {
+  int64 id = 1;
+  string name = 2;
+  string email = 3;
+  google.protobuf.Timestamp created_at = 4;
+  google.protobuf.Timestamp last_login = 5;
+  google.protobuf.Duration session_duration = 6;
+  google.protobuf.Struct metadata = 7;
+  Status status = 8;
+}
+
+enum Status {
+  STATUS_UNSPECIFIED = 0;
+  STATUS_ACTIVE = 1;
+  STATUS_INACTIVE = 2;
+  STATUS_SUSPENDED = 3;
+}
+
+// UserList contains multiple users
+message UserList {
+  repeated User users = 1;
+  google.protobuf.Timestamp fetched_at = 2;
+}
+
+// Activity log with Any type
+message ActivityLog {
+  string id = 1;
+  google.protobuf.Timestamp timestamp = 2;
+  google.protobuf.Any details = 3;
+}
