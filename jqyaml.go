@@ -14,21 +14,13 @@ import (
 	yamlformat "github.com/apstndb/go-yamlformat"
 	"github.com/goccy/go-yaml"
 	"github.com/itchyny/gojq"
+	"google.golang.org/protobuf/proto"
 )
 
-// isProtoMessage checks if v implements proto.Message using reflection
+// isProtoMessage checks if v implements proto.Message
 func isProtoMessage(v interface{}) bool {
-	if v == nil {
-		return false
-	}
-	t := reflect.TypeOf(v)
-	// Check for the three required methods of proto.Message
-	_, hasProtoReflect := t.MethodByName("ProtoReflect")
-	_, hasReset := t.MethodByName("Reset")
-	_, hasString := t.MethodByName("String")
-	_, hasProtoMessage := t.MethodByName("ProtoMessage")
-
-	return hasProtoReflect && hasReset && hasString && hasProtoMessage
+	_, ok := v.(proto.Message)
+	return ok
 }
 
 // Pipeline represents a data processing pipeline with jq query support
