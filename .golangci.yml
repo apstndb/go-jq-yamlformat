@@ -3,6 +3,11 @@
 
 version: "2"
 
+formatters:
+  enable:
+    - goimports
+    - gofumpt
+
 linters:
   enable:
     - bodyclose
@@ -25,26 +30,19 @@ linters:
     - unused
     - whitespace
 
-formatters:
-  enable:
-    - gofumpt
-    - goimports
+  settings:
+    gocyclo:
+      min-complexity: 15
+    goconst:
+      min-len: 2
+      min-occurrences: 2
+    misspell:
+      locale: US
 
-issues:
-  exclude-rules:
-    # Exclude some linters from running on tests files.
-    - path: _test\.go
-      linters:
-        - gosec
-        - dupl
-
-linters-settings:
-  gocyclo:
-    min-complexity: 15
-  goconst:
-    min-len: 2
-    min-occurrences: 2
-  misspell:
-    locale: US
-  goimports:
-    local-prefixes: github.com/apstndb/go-jq-yamlformat
+  exclusions:
+    rules:
+      # Exclude some linters from running on tests files.
+      - path: _test\.go
+        linters:
+          - gosec
+          - dupl
