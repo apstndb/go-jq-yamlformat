@@ -39,13 +39,13 @@ func TestJSONLOutput(t *testing.T) {
 				{"id": 1, "name": "Alice"},
 				{"id": 2, "name": "Bob"},
 			},
-			query:   ".[]",
-			options: []ExecuteOption{WithPrettyJSONOutput()},
+			query:         ".[]",
+			options:       []ExecuteOption{WithPrettyJSONOutput()},
 			wantLineCount: 8, // Each object spans multiple lines
 		},
 		{
-			name: "raw output with strings should produce valid lines",
-			input: []string{"line1", "line2", "line3"},
+			name:    "raw output with strings should produce valid lines",
+			input:   []string{"line1", "line2", "line3"},
 			query:   ".[]",
 			options: []ExecuteOption{WithRawJSONOutput()},
 			wantLines: []string{
@@ -72,8 +72,8 @@ func TestJSONLOutput(t *testing.T) {
 			wantLineCount: 3,
 		},
 		{
-			name: "multiple values without query should still produce one line",
-			input: []interface{}{1, 2, 3},
+			name:    "multiple values without query should still produce one line",
+			input:   []interface{}{1, 2, 3},
 			query:   "",
 			options: []ExecuteOption{WithCompactJSONOutput()},
 			wantLines: []string{
@@ -82,8 +82,8 @@ func TestJSONLOutput(t *testing.T) {
 			wantLineCount: 1,
 		},
 		{
-			name: "empty strings in raw mode should produce empty lines",
-			input: []string{"", "line2", "", "line4"},
+			name:    "empty strings in raw mode should produce empty lines",
+			input:   []string{"", "line2", "", "line4"},
 			query:   ".[]",
 			options: []ExecuteOption{WithRawJSONOutput()},
 			wantLines: []string{
@@ -115,7 +115,7 @@ func TestJSONLOutput(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var buf bytes.Buffer
-			
+
 			p, err := New(WithQuery(tt.query))
 			if err != nil {
 				t.Fatalf("failed to create pipeline: %v", err)
@@ -128,7 +128,7 @@ func TestJSONLOutput(t *testing.T) {
 			}
 
 			output := buf.String()
-			
+
 			// Check that output ends with a newline (except for empty output)
 			if output != "" && !strings.HasSuffix(output, "\n") {
 				t.Errorf("output does not end with newline: %q", output)
@@ -136,16 +136,16 @@ func TestJSONLOutput(t *testing.T) {
 
 			// Split by newlines
 			lines := strings.Split(strings.TrimRight(output, "\n"), "\n")
-			
+
 			// Check line count
 			if tt.wantLineCount > 0 && len(lines) != tt.wantLineCount {
 				t.Errorf("got %d lines, want %d\nOutput:\n%s", len(lines), tt.wantLineCount, output)
 			}
-			
+
 			// Check specific line content if provided
 			if tt.wantLines != nil {
 				if len(lines) != len(tt.wantLines) {
-					t.Errorf("got %d lines, want %d\nGot: %v\nWant: %v", 
+					t.Errorf("got %d lines, want %d\nGot: %v\nWant: %v",
 						len(lines), len(tt.wantLines), lines, tt.wantLines)
 				}
 				for i, wantLine := range tt.wantLines {
@@ -154,11 +154,11 @@ func TestJSONLOutput(t *testing.T) {
 					}
 				}
 			}
-			
+
 			// For compact JSON, verify each line is valid JSON (skip this check for raw output)
-			isRawOutput := tt.name == "raw output with strings should produce valid lines" || 
+			isRawOutput := tt.name == "raw output with strings should produce valid lines" ||
 				tt.name == "raw output with non-strings should fallback to JSON"
-			
+
 			if !isRawOutput && tt.name == "compact JSON output should produce valid JSONL" {
 				for i, line := range lines {
 					if line != "" && !isValidJSON(line) {

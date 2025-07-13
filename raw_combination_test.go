@@ -54,7 +54,7 @@ func TestRawOutputCombinations(t *testing.T) {
 				}
 			},
 		},
-		
+
 		// Object tests - raw should force compact for non-strings
 		{
 			name:        "raw only with object",
@@ -99,7 +99,7 @@ func TestRawOutputCombinations(t *testing.T) {
 				}
 			},
 		},
-		
+
 		// Array tests
 		{
 			name:        "raw + pretty with array",
@@ -113,7 +113,7 @@ func TestRawOutputCombinations(t *testing.T) {
 				}
 			},
 		},
-		
+
 		// Mixed type streaming
 		{
 			name: "raw + pretty with mixed types",
@@ -122,8 +122,8 @@ func TestRawOutputCombinations(t *testing.T) {
 				map[string]interface{}{"key": "value"},
 				42,
 			},
-			query:   ".[]",
-			options: []ExecuteOption{WithRawJSONOutput(), WithPrettyJSONOutput()},
+			query:       ".[]",
+			options:     []ExecuteOption{WithRawJSONOutput(), WithPrettyJSONOutput()},
 			description: "Raw + Pretty for mixed types: strings raw, others compact",
 			checkFunc: func(t *testing.T, output string) {
 				lines := strings.Split(strings.TrimSpace(output), "\n")
@@ -141,7 +141,7 @@ func TestRawOutputCombinations(t *testing.T) {
 				}
 			},
 		},
-		
+
 		// Comparison: pretty without raw
 		{
 			name:        "pretty only with object (for comparison)",
@@ -159,7 +159,7 @@ func TestRawOutputCombinations(t *testing.T) {
 				}
 			},
 		},
-		
+
 		// Nested objects
 		{
 			name: "raw + pretty with nested object",
@@ -170,8 +170,8 @@ func TestRawOutputCombinations(t *testing.T) {
 					},
 				},
 			},
-			query:   ".",
-			options: []ExecuteOption{WithRawJSONOutput(), WithPrettyJSONOutput()},
+			query:       ".",
+			options:     []ExecuteOption{WithRawJSONOutput(), WithPrettyJSONOutput()},
 			description: "Raw + Pretty for nested objects: still compact (raw wins)",
 			checkFunc: func(t *testing.T, output string) {
 				lines := strings.Split(strings.TrimSpace(output), "\n")
@@ -188,7 +188,7 @@ func TestRawOutputCombinations(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Logf("Description: %s", tt.description)
-			
+
 			p, err := New(WithQuery(tt.query))
 			if err != nil {
 				t.Fatalf("failed to create pipeline: %v", err)
@@ -196,7 +196,7 @@ func TestRawOutputCombinations(t *testing.T) {
 
 			var buf bytes.Buffer
 			opts := append(tt.options, WithWriter(&buf, FormatJSON))
-			
+
 			err = p.Execute(context.Background(), tt.input, opts...)
 			if err != nil {
 				t.Fatalf("execution failed: %v", err)
@@ -224,7 +224,7 @@ func TestRawOutputPriority(t *testing.T) {
 	}
 
 	var outputs []string
-	
+
 	for i, opts := range optionSets {
 		p, err := New(WithQuery(query))
 		if err != nil {
@@ -233,7 +233,7 @@ func TestRawOutputPriority(t *testing.T) {
 
 		var buf bytes.Buffer
 		execOpts := append(opts, WithWriter(&buf, FormatJSON))
-		
+
 		err = p.Execute(context.Background(), input, execOpts...)
 		if err != nil {
 			t.Fatalf("execution %d failed: %v", i, err)
@@ -245,11 +245,11 @@ func TestRawOutputPriority(t *testing.T) {
 	// All outputs should be identical (compact JSON) regardless of option order
 	for i := 1; i < len(outputs); i++ {
 		if outputs[i] != outputs[0] {
-			t.Errorf("Output %d differs from output 0:\nOutput 0: %q\nOutput %d: %q", 
+			t.Errorf("Output %d differs from output 0:\nOutput 0: %q\nOutput %d: %q",
 				i, outputs[0], i, outputs[i])
 		}
 	}
-	
+
 	// Verify it's actually compact
 	if strings.Contains(outputs[0], "\n  ") || strings.Contains(outputs[0], "{\n") {
 		t.Errorf("Expected compact output, but got: %q", outputs[0])

@@ -7,7 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/apstndb/go-jq-yamlformat"
+	jqyaml "github.com/apstndb/go-jq-yamlformat"
 	"github.com/apstndb/go-jq-yamlformat/examples/protobuf-real/pb"
 	"github.com/apstndb/go-yamlformat"
 	"google.golang.org/protobuf/encoding/protojson"
@@ -24,11 +24,11 @@ func main() {
 	userList := &pb.UserList{
 		Users: []*pb.User{
 			{
-				Id:        1,
-				Name:      "Alice Johnson",
-				Email:     "alice@example.com",
-				CreatedAt: timestamppb.New(now.Add(-365 * 24 * time.Hour)), // 1 year ago
-				LastLogin: timestamppb.New(now.Add(-2 * time.Hour)),
+				Id:              1,
+				Name:            "Alice Johnson",
+				Email:           "alice@example.com",
+				CreatedAt:       timestamppb.New(now.Add(-365 * 24 * time.Hour)), // 1 year ago
+				LastLogin:       timestamppb.New(now.Add(-2 * time.Hour)),
 				SessionDuration: durationpb.New(45 * time.Minute),
 				Metadata: mustStruct(map[string]interface{}{
 					"department": "Engineering",
@@ -38,11 +38,11 @@ func main() {
 				Status: pb.Status_STATUS_ACTIVE,
 			},
 			{
-				Id:        2,
-				Name:      "Bob Smith",
-				Email:     "bob@example.com",
-				CreatedAt: timestamppb.New(now.Add(-180 * 24 * time.Hour)), // 6 months ago
-				LastLogin: timestamppb.New(now.Add(-72 * time.Hour)),
+				Id:              2,
+				Name:            "Bob Smith",
+				Email:           "bob@example.com",
+				CreatedAt:       timestamppb.New(now.Add(-180 * 24 * time.Hour)), // 6 months ago
+				LastLogin:       timestamppb.New(now.Add(-72 * time.Hour)),
 				SessionDuration: durationpb.New(30 * time.Minute),
 				Metadata: mustStruct(map[string]interface{}{
 					"department": "Marketing",
@@ -52,11 +52,11 @@ func main() {
 				Status: pb.Status_STATUS_ACTIVE,
 			},
 			{
-				Id:        3,
-				Name:      "Charlie Brown",
-				Email:     "charlie@example.com",
-				CreatedAt: timestamppb.New(now.Add(-90 * 24 * time.Hour)), // 3 months ago
-				LastLogin: timestamppb.New(now.Add(-720 * time.Hour)),     // 30 days ago
+				Id:              3,
+				Name:            "Charlie Brown",
+				Email:           "charlie@example.com",
+				CreatedAt:       timestamppb.New(now.Add(-90 * 24 * time.Hour)), // 3 months ago
+				LastLogin:       timestamppb.New(now.Add(-720 * time.Hour)),     // 30 days ago
 				SessionDuration: durationpb.New(15 * time.Minute),
 				Metadata: mustStruct(map[string]interface{}{
 					"department": "Sales",
@@ -145,7 +145,7 @@ func main() {
 
 	// Example 5: Working with Any type
 	fmt.Println("\n\nExample 5: Activity logs with Any type")
-	
+
 	// Create activity logs with different message types wrapped in Any
 	activityLog := &pb.ActivityLog{
 		Id:        "log-001",

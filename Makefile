@@ -13,7 +13,20 @@ lint:
 
 .PHONY: fmt
 fmt:
-	go fmt ./...
+	@echo "Formatting code..."
+	golangci-lint fmt .
+	@echo "Code formatted successfully"
+
+.PHONY: fmt-check
+fmt-check:
+	@echo "Checking code formatting..."
+	@if golangci-lint fmt --diff . | grep -q "^diff"; then \
+		echo "Code formatting issues found. Run 'make fmt' to fix."; \
+		golangci-lint fmt --diff . | head -100; \
+		exit 1; \
+	else \
+		echo "Code formatting is correct"; \
+	fi
 
 .PHONY: vet
 vet:
@@ -39,4 +52,4 @@ clean:
 	rm -f examples/streaming/output.jsonl
 
 .PHONY: all
-all: fmt vet test
+all: fmt-check lint test

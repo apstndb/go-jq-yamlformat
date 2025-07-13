@@ -1,26 +1,27 @@
+version: "2"
+
+formatters:
+  enable:
+    - goimports
+    - gofumpt  # gofumpt is a superset of gofmt with -s always enabled
+
 linters:
   enable:
     - bodyclose
     - dogsled
     - dupl
     - errcheck
-    - exportloopref
     - gochecknoinits
     - goconst
     - gocritic
     - gocyclo
-    - gofmt
-    - goimports
     - gosec
-    - gosimple
     - govet
     - ineffassign
     - misspell
     - nakedret
     - prealloc
     - staticcheck
-    - stylecheck
-    - typecheck
     - unconvert
     - unparam
     - unused

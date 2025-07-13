@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/apstndb/go-jq-yamlformat"
+	jqyaml "github.com/apstndb/go-jq-yamlformat"
 	"github.com/google/go-cmp/cmp"
 )
 
@@ -43,9 +43,9 @@ func TestCompactOutput(t *testing.T) {
 				"id":   1,
 				"name": "Alice",
 			},
-			query:    ".",
-			format:   jqyaml.FormatJSON,
-			compact:  ptrBool(false),
+			query:   ".",
+			format:  jqyaml.FormatJSON,
+			compact: ptrBool(false),
 			expected: `{
   "id": 1,
   "name": "Alice"
@@ -61,7 +61,7 @@ func TestCompactOutput(t *testing.T) {
 			query:    ".",
 			format:   jqyaml.FormatJSON,
 			compact:  nil, // No explicit option, use default
-			expected: `{"id": 1, "name": "Alice"}` + "\n",
+			expected: `{"id":1,"name":"Alice"}` + "\n",
 		},
 		{
 			name: "compact option ignored for YAML",
@@ -281,7 +281,6 @@ func TestFormatOptionsWithCallback(t *testing.T) {
 		jqyaml.WithCompactJSONOutput(), // Should be ignored in callback mode
 		jqyaml.WithRawJSONOutput(),     // Should be ignored in callback mode
 	)
-
 	if err != nil {
 		t.Fatalf("execution failed: %v", err)
 	}
@@ -294,16 +293,16 @@ func TestFormatOptionsWithCallback(t *testing.T) {
 
 func TestFormatOptionsDocumentation(t *testing.T) {
 	// This test verifies the documented behavior of format options
-	
+
 	t.Run("WithCompactJSONOutput documentation", func(t *testing.T) {
 		// Verify that WithCompactJSONOutput only affects JSON output
 		p, err := jqyaml.New(jqyaml.WithQuery("."))
 		if err != nil {
 			t.Fatal(err)
 		}
-		
+
 		data := map[string]interface{}{"test": true}
-		
+
 		// JSON with compact
 		var jsonBuf bytes.Buffer
 		err = p.Execute(context.Background(), data,
@@ -313,12 +312,12 @@ func TestFormatOptionsDocumentation(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		
+
 		jsonOutput := jsonBuf.String()
 		if strings.Contains(jsonOutput, "\n  ") {
 			t.Error("JSON output should be compact (no indentation)")
 		}
-		
+
 		// YAML with compact (should be ignored)
 		var yamlBuf bytes.Buffer
 		err = p.Execute(context.Background(), data,
@@ -328,22 +327,22 @@ func TestFormatOptionsDocumentation(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		
+
 		// YAML output should be the same regardless of compact option
 		if yamlBuf.String() != "test: true\n" {
 			t.Error("YAML output should not be affected by WithCompactJSONOutput")
 		}
 	})
-	
+
 	t.Run("WithRawJSONOutput documentation", func(t *testing.T) {
 		// Verify that WithRawJSONOutput only affects JSON string output
 		p, err := jqyaml.New(jqyaml.WithQuery("."))
 		if err != nil {
 			t.Fatal(err)
 		}
-		
+
 		data := "hello"
-		
+
 		// JSON with raw
 		var jsonBuf bytes.Buffer
 		err = p.Execute(context.Background(), data,
@@ -353,11 +352,11 @@ func TestFormatOptionsDocumentation(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		
+
 		if jsonBuf.String() != "hello\n" {
 			t.Error("JSON string output should be raw (no quotes)")
 		}
-		
+
 		// Non-string data with raw should still be JSON encoded
 		var numBuf bytes.Buffer
 		err = p.Execute(context.Background(), 42,
@@ -367,7 +366,7 @@ func TestFormatOptionsDocumentation(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		
+
 		if numBuf.String() != "42\n" {
 			t.Errorf("JSON number output should be standard JSON, got: %q", numBuf.String())
 		}

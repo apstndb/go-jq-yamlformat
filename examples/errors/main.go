@@ -8,7 +8,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/apstndb/go-jq-yamlformat"
+	jqyaml "github.com/apstndb/go-jq-yamlformat"
 	"github.com/apstndb/go-yamlformat"
 )
 

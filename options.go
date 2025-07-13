@@ -49,7 +49,6 @@ func WithInputMarshaler(marshaler InputMarshaler) Option {
 	}
 }
 
-
 // ExecuteOption configures the execution
 type ExecuteOption func(*executeConfig)
 
