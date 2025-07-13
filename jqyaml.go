@@ -110,7 +110,7 @@ func New(opts ...Option) (Pipeline, error) {
 }
 
 // Execute runs the pipeline on the input data
-func (p *pipeline) Execute(ctx context.Context, input interface{}, opts ...ExecuteOption) error {
+func (p *pipeline) Execute(ctx context.Context, input interface{}, opts ...ExecuteOption) error { //nolint:gocyclo // Complexity due to multiple execution modes and error handling
 	// Configure execution
 	cfg := &executeConfig{
 		timeout: 30 * time.Second, // default
@@ -314,7 +314,7 @@ func (e *errorIter) Next() (interface{}, bool) {
 }
 
 // convertToJQCompatible converts any Go value to gojq-compatible types
-func convertToJQCompatible(v interface{}, opts ...yaml.EncodeOption) (interface{}, error) {
+func convertToJQCompatible(v interface{}, opts ...yaml.EncodeOption) (interface{}, error) { //nolint:gocyclo // Necessary type switch for all numeric types
 	// Fast path for already compatible types
 	switch v := v.(type) {
 	case nil, bool, string:

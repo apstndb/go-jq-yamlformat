@@ -13,7 +13,7 @@ import (
 	"github.com/goccy/go-yaml"
 )
 
-func main() {
+func main() { //nolint:gocyclo // Example code demonstrating multiple use cases
 	// Generate large dataset
 	var items []map[string]interface{}
 	for i := 0; i < 1000; i++ {
@@ -130,7 +130,7 @@ func main() {
 	log.Println("\nExample 4: Stream to file")
 
 	// Create .tmp directory if it doesn't exist
-	if err := os.MkdirAll(".tmp", 0o755); err != nil {
+	if err := os.MkdirAll(".tmp", 0o750); err != nil {
 		log.Printf("Error creating .tmp directory: %v\n", err)
 		return
 	}

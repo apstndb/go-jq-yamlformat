@@ -12,7 +12,7 @@ const (
 )
 
 // TestRawOutputCombinations tests the behavior of raw output with compact and pretty options
-func TestRawOutputCombinations(t *testing.T) {
+func TestRawOutputCombinations(t *testing.T) { //nolint:gocyclo // Table-driven test with multiple test cases
 	tests := []struct {
 		name        string
 		input       interface{}

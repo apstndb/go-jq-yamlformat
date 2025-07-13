@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-func TestJSONLOutput(t *testing.T) {
+func TestJSONLOutput(t *testing.T) { //nolint:gocyclo // Table-driven test with multiple test cases
 	tests := []struct {
 		name          string
 		input         interface{}

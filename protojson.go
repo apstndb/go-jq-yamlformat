@@ -26,7 +26,7 @@ type protojsonMarshaler struct {
 }
 
 // Marshal converts values to gojq-compatible types, using protojson for proto.Message types
-func (m *protojsonMarshaler) Marshal(v interface{}) (interface{}, error) {
+func (m *protojsonMarshaler) Marshal(v interface{}) (interface{}, error) { //nolint:gocyclo // Complex type handling for proto messages and slices
 	// Handle nil
 	if v == nil {
 		return nil, nil
