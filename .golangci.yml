@@ -1,9 +1,5 @@
-version: "2"
-
-formatters:
-  enable:
-    - goimports
-    - gofumpt  # gofumpt is a superset of gofmt with -s always enabled
+# golangci-lint configuration
+# See https://golangci-lint.run/usage/configuration/
 
 linters:
   enable:
@@ -15,6 +11,8 @@ linters:
     - goconst
     - gocritic
     - gocyclo
+    - gofumpt
+    - goimports
     - gosec
     - govet
     - ineffassign
@@ -36,8 +34,6 @@ issues:
         - dupl
 
 linters-settings:
-  govet:
-    check-shadowing: true
   gocyclo:
     min-complexity: 15
   goconst:
