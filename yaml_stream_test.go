@@ -81,7 +81,7 @@ func TestYAMLStreamDocumentSeparator(t *testing.T) {
 	}
 }
 
-// TestYAMLStreamWithCallback tests that streaming with callback also produces proper separators
+// TestYAMLStreamWithCallback tests that streaming with a callback receives all results from a stream
 func TestYAMLStreamWithCallback(t *testing.T) {
 	p, err := New(WithQuery(".numbers[]"))
 	if err != nil {
@@ -103,26 +103,15 @@ func TestYAMLStreamWithCallback(t *testing.T) {
 		t.Fatalf("failed to execute pipeline: %v", err)
 	}
 
-	// Verify we got the expected number of results
-	if len(results) != 3 {
-		t.Errorf("expected 3 results, got %d", len(results))
+	// Verify we got the expected number of results and they are correct
+	expected := []interface{}{1, 2, 3}
+	if len(results) != len(expected) {
+		t.Fatalf("expected %d results, got %d", len(expected), len(results))
 	}
 
-	// Now test that when we manually encode these with YAML, we would need separators
-	var buf bytes.Buffer
-	for i, result := range results {
-		if i > 0 {
-			// This is what we need to add automatically in the encoder
-			buf.WriteString("---\n")
+	for i := range results {
+		if results[i] != expected[i] {
+			t.Errorf("result at index %d mismatch: got %v, want %v", i, results[i], expected[i])
 		}
-		// Simulate encoding each result
-		if err := FormatYAML.NewEncoder(&buf).Encode(result); err != nil {
-			t.Fatalf("failed to encode result: %v", err)
-		}
-	}
-
-	expected := "1\n---\n2\n---\n3\n"
-	if buf.String() != expected {
-		t.Errorf("manual encoding shows we need separators\ngot:\n%s\nwant:\n%s", buf.String(), expected)
 	}
 }

@@ -404,16 +404,26 @@ func (d *defaultInputMarshaler) Marshal(v interface{}) (interface{}, error) {
 		return d.protojsonMarshaler.Marshal(v)
 	}
 
-	// Check if v is a slice of proto.Message
+	// Check if v is a slice that may contain proto.Message instances
 	if slice := reflect.ValueOf(v); slice.Kind() == reflect.Slice {
-		if slice.Len() > 0 {
-			// Check the first element
-			if isProtoMessage(slice.Index(0).Interface()) {
-				if d.protojsonMarshaler == nil {
-					d.protojsonMarshaler = createProtojsonMarshaler()
+		var useProtoMarshaler bool
+		// To determine if we should use the proto marshaler, we check the type of the first non-nil element
+		for i := 0; i < slice.Len(); i++ {
+			elem := slice.Index(i).Interface()
+			if elem != nil {
+				if isProtoMessage(elem) {
+					useProtoMarshaler = true
 				}
-				return d.protojsonMarshaler.Marshal(v)
+				break // Only need to check the first non-nil element
 			}
+		}
+
+		if useProtoMarshaler {
+			if d.protojsonMarshaler == nil {
+				// Lazy initialization to avoid import if not needed
+				d.protojsonMarshaler = createProtojsonMarshaler()
+			}
+			return d.protojsonMarshaler.Marshal(v)
 		}
 	}
 
