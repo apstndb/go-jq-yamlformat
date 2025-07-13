@@ -130,10 +130,10 @@ func main() {
 				// Different format for this example
 				return []byte(strconv.Quote(t.Format("2006-01-02 15:04:05"))), nil
 			}),
-			yaml.CustomMarshaler[Currency](func(c Currency) ([]byte, error) {
-				// Simplified format
-				return []byte(fmt.Sprintf(`"$%.2f"`, c.Amount)), nil
+			yaml.CustomMarshaler[UserID](func(id UserID) ([]byte, error) {
+				return []byte(fmt.Sprintf(`"USER:%s"`, string(id))), nil
 			}),
+			// Note: Not using Currency marshaler here to allow field access
 		),
 	)
 	if err != nil {
