@@ -233,7 +233,8 @@ func TestRawOutputPriority(t *testing.T) {
 		}
 
 		var buf bytes.Buffer
-		execOpts := append(opts, WithWriter(&buf, FormatJSON))
+		execOpts := append([]ExecuteOption{}, opts...)
+		execOpts = append(execOpts, WithWriter(&buf, FormatJSON))
 
 		err = p.Execute(context.Background(), input, execOpts...)
 		if err != nil {

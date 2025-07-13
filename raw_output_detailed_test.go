@@ -176,7 +176,8 @@ func TestRawOutputDetailed(t *testing.T) {
 				}
 
 				var buf bytes.Buffer
-				opts := append(tt.options, WithWriter(&buf, FormatJSON))
+				opts := append([]ExecuteOption{}, tt.options...)
+				opts = append(opts, WithWriter(&buf, FormatJSON))
 
 				err = p.Execute(context.Background(), tt.input, opts...)
 				if err != nil {
@@ -209,7 +210,8 @@ func TestRawOutputDetailed(t *testing.T) {
 					return nil
 				}
 
-				opts := append(tt.options, WithCallback(callback))
+				opts := append([]ExecuteOption{}, tt.options...)
+				opts = append(opts, WithCallback(callback))
 
 				err = p.Execute(context.Background(), tt.input, opts...)
 				if err != nil {
