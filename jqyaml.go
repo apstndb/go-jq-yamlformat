@@ -57,10 +57,19 @@ const (
 	FormatJSON = yamlformat.FormatJSON
 )
 
+// JSONStyle represents JSON output style options
+type JSONStyle int
+
+// JSONStyle constants
+const (
+	JSONStyleCompact JSONStyle = 0
+	JSONStylePretty  JSONStyle = 1 << iota
+	JSONStyleRaw
+)
+
 // pipeline implements the Pipeline interface
 type pipeline struct {
 	query                string
-	compiled             *gojq.Code
 	defaultEncodeOptions []yaml.EncodeOption
 	compilerOptions      []gojq.CompilerOption
 	inputMarshaler       InputMarshaler
@@ -159,7 +168,8 @@ func (p *pipeline) Execute(ctx context.Context, input interface{}, opts ...Execu
 	}
 
 	// Combine encode options (default + execution-specific)
-	allEncodeOpts := append(p.defaultEncodeOptions, cfg.encodeOptions...)
+	allEncodeOpts := append([]yaml.EncodeOption{}, p.defaultEncodeOptions...)
+	allEncodeOpts = append(allEncodeOpts, cfg.encodeOptions...)
 
 	// Determine which input marshaler to use
 	marshaler := p.inputMarshaler
@@ -434,7 +444,7 @@ func (e *yamlEncoderWrapper) Encode(v interface{}) error {
 		}
 	}
 	e.documentCount++
-	
+
 	encoder := FormatYAML.NewEncoder(e.writer, e.options...)
 	return encoder.Encode(v)
 }

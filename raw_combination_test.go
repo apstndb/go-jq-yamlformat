@@ -195,7 +195,8 @@ func TestRawOutputCombinations(t *testing.T) {
 			}
 
 			var buf bytes.Buffer
-			opts := append(tt.options, WithWriter(&buf, FormatJSON))
+			opts := append([]ExecuteOption{}, tt.options...)
+			opts = append(opts, WithWriter(&buf, FormatJSON))
 
 			err = p.Execute(context.Background(), tt.input, opts...)
 			if err != nil {

@@ -121,7 +121,8 @@ func TestJSONLOutput(t *testing.T) {
 				t.Fatalf("failed to create pipeline: %v", err)
 			}
 
-			opts := append(tt.options, WithWriter(&buf, FormatJSON))
+			opts := append([]ExecuteOption{}, tt.options...)
+			opts = append(opts, WithWriter(&buf, FormatJSON))
 			err = p.Execute(context.Background(), tt.input, opts...)
 			if err != nil {
 				t.Fatalf("execute failed: %v", err)

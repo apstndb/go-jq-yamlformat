@@ -319,9 +319,9 @@ func TestRawOutputConsistency(t *testing.T) {
 			// Get output with encoder wrapper
 			var encoderBuf bytes.Buffer
 			encoder := &jsonEncoder{
-				writer:  &encoderBuf,
-				compact: true,
-				raw:     true,
+				writer: &encoderBuf,
+				pretty: false, // compact = !pretty
+				raw:    true,
 			}
 			p2, _ := New(WithQuery(tc.query))
 			err = p2.Execute(context.Background(), tc.input,
