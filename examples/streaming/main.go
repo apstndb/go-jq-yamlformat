@@ -128,13 +128,13 @@ func main() {
 
 	// Example 4: Stream to file
 	log.Println("\nExample 4: Stream to file")
-	
+
 	// Create .tmp directory if it doesn't exist
-	if err := os.MkdirAll(".tmp", 0755); err != nil {
+	if err := os.MkdirAll(".tmp", 0o755); err != nil {
 		log.Printf("Error creating .tmp directory: %v\n", err)
 		return
 	}
-	
+
 	file, err := os.Create(".tmp/output.jsonl")
 	if err != nil {
 		log.Fatal(err)
