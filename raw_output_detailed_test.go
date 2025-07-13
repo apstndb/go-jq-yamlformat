@@ -60,7 +60,7 @@ func TestRawOutputDetailed(t *testing.T) {
 			expectedLines: []string{"foo", "bar", "baz"},
 			description:   "Each string should be on its own line without quotes",
 		},
-		
+
 		// Non-string tests
 		{
 			name:          "raw number outputs as JSON",
@@ -102,7 +102,7 @@ func TestRawOutputDetailed(t *testing.T) {
 			expectedLines: []string{"[1,2,3]"},
 			description:   "Arrays should be output as compact JSON",
 		},
-		
+
 		// Mixed type arrays
 		{
 			name: "mixed type array",
@@ -126,7 +126,7 @@ func TestRawOutputDetailed(t *testing.T) {
 			},
 			description: "Mixed types should each be handled appropriately",
 		},
-		
+
 		// Raw + Compact combination
 		{
 			name:          "raw and compact outputs compact JSON for objects",
@@ -136,7 +136,7 @@ func TestRawOutputDetailed(t *testing.T) {
 			expectedLines: []string{`{"a":1,"b":2,"c":3}`},
 			description:   "Raw with compact should ensure compact JSON",
 		},
-		
+
 		// Raw + Pretty combination
 		{
 			name:          "raw and pretty still outputs compact for non-strings",
@@ -146,7 +146,7 @@ func TestRawOutputDetailed(t *testing.T) {
 			expectedLines: []string{`{"a":1,"b":2}`},
 			description:   "Raw should override pretty for non-strings",
 		},
-		
+
 		// Edge cases
 		{
 			name:          "string that looks like JSON",
@@ -177,7 +177,7 @@ func TestRawOutputDetailed(t *testing.T) {
 
 				var buf bytes.Buffer
 				opts := append(tt.options, WithWriter(&buf, FormatJSON))
-				
+
 				err = p.Execute(context.Background(), tt.input, opts...)
 				if err != nil {
 					t.Fatalf("execution failed: %v", err)
@@ -210,7 +210,7 @@ func TestRawOutputDetailed(t *testing.T) {
 				}
 
 				opts := append(tt.options, WithCallback(callback))
-				
+
 				err = p.Execute(context.Background(), tt.input, opts...)
 				if err != nil {
 					t.Fatalf("execution failed: %v", err)
@@ -221,7 +221,7 @@ func TestRawOutputDetailed(t *testing.T) {
 				if len(results) > 0 {
 					output += "\n"
 				}
-				
+
 				verifyOutput(t, output, tt.expectedLines, tt.description)
 			})
 		})
@@ -230,20 +230,20 @@ func TestRawOutputDetailed(t *testing.T) {
 
 func verifyOutput(t *testing.T, output string, expectedLines []string, description string) {
 	t.Helper()
-	
+
 	// Check description
 	if description != "" {
 		t.Logf("Test description: %s", description)
 	}
-	
+
 	// Verify output ends with newline
 	if output != "" && !strings.HasSuffix(output, "\n") {
 		t.Errorf("output does not end with newline: %q", output)
 	}
-	
+
 	// Split and compare lines
 	gotLines := strings.Split(strings.TrimRight(output, "\n"), "\n")
-	
+
 	if diff := cmp.Diff(expectedLines, gotLines); diff != "" {
 		t.Errorf("output lines mismatch (-want +got):\n%s", diff)
 	}
@@ -293,7 +293,7 @@ func TestRawOutputConsistency(t *testing.T) {
 			query: ".",
 		},
 		{
-			name:  "nested extraction",
+			name: "nested extraction",
 			input: map[string]interface{}{
 				"data": map[string]interface{}{
 					"message": "hello world",
@@ -315,7 +315,7 @@ func TestRawOutputConsistency(t *testing.T) {
 			if err != nil {
 				t.Fatalf("writer execution failed: %v", err)
 			}
-			
+
 			// Get output with encoder wrapper
 			var encoderBuf bytes.Buffer
 			encoder := &jsonEncoder{
@@ -330,7 +330,7 @@ func TestRawOutputConsistency(t *testing.T) {
 			if err != nil {
 				t.Fatalf("encoder execution failed: %v", err)
 			}
-			
+
 			// Compare outputs
 			if writerBuf.String() != encoderBuf.String() {
 				t.Errorf("outputs differ:\nwriter:  %q\nencoder: %q",

@@ -35,3 +35,6 @@ examples/streaming/output.jsonl
 # Coverage files
 coverage.out
 coverage.html
+
+# Temporary files
+tmp/

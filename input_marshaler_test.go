@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/apstndb/go-jq-yamlformat"
+	jqyaml "github.com/apstndb/go-jq-yamlformat"
 	"github.com/google/go-cmp/cmp"
 )
 
@@ -71,7 +71,6 @@ func (m *customTimeMarshaler) Marshal(v interface{}) (interface{}, error) {
 
 // TestInputMarshaler tests the custom input marshaler functionality
 func TestInputMarshaler(t *testing.T) {
-
 	tests := []struct {
 		name     string
 		input    interface{}
@@ -101,7 +100,7 @@ func TestInputMarshaler(t *testing.T) {
 				},
 			},
 			query:    ".events | map(.date)",
-			expected: `["2023-12-25", "2024-01-01"]`,
+			expected: `["2023-12-25","2024-01-01"]`,
 		},
 		{
 			name: "filter with custom type",
@@ -195,7 +194,6 @@ func (m *prefixMarshaler) Marshal(v interface{}) (interface{}, error) {
 
 // TestInputMarshalerWithVariables tests custom marshaler with variables
 func TestInputMarshalerWithVariables(t *testing.T) {
-
 	// Create pipeline
 	p, err := jqyaml.New(
 		jqyaml.WithQuery(`. as $data | $filter | map(select(.name == $data.target))[]`),
@@ -229,7 +227,7 @@ func TestInputMarshalerWithVariables(t *testing.T) {
 
 	// Check that the marshaler was applied to both input and variables
 	got := strings.TrimSpace(buf.String())
-	expected := `{"name": "PREFIX:item1", "value": 10}`
+	expected := `{"name":"PREFIX:item1","value":10}`
 	if diff := cmp.Diff(expected, got); diff != "" {
 		t.Errorf("output mismatch (-want +got):\n%s", diff)
 	}
@@ -242,7 +240,7 @@ func (m *errorMarshaler) Marshal(v interface{}) (interface{}, error) {
 	if s, ok := v.(string); ok && s == "error" {
 		return nil, fmt.Errorf("marshaling error for value: %s", s)
 	}
-	
+
 	// Handle maps recursively to find error strings
 	if mapVal, ok := v.(map[string]interface{}); ok {
 		result := make(map[string]interface{})
@@ -255,7 +253,7 @@ func (m *errorMarshaler) Marshal(v interface{}) (interface{}, error) {
 		}
 		return result, nil
 	}
-	
+
 	// Handle slices recursively
 	if sliceVal, ok := v.([]interface{}); ok {
 		result := make([]interface{}, len(sliceVal))
@@ -268,7 +266,7 @@ func (m *errorMarshaler) Marshal(v interface{}) (interface{}, error) {
 		}
 		return result, nil
 	}
-	
+
 	// Default behavior
 	b, err := json.Marshal(v)
 	if err != nil {
@@ -283,7 +281,6 @@ func (m *errorMarshaler) Marshal(v interface{}) (interface{}, error) {
 
 // TestInputMarshalerError tests error handling in custom marshaler
 func TestInputMarshalerError(t *testing.T) {
-
 	p, err := jqyaml.New(
 		jqyaml.WithQuery("."),
 		jqyaml.WithInputMarshaler(&errorMarshaler{}),
@@ -329,7 +326,7 @@ func TestWithInputMarshalerValidation(t *testing.T) {
 func TestWithProtojsonInput(t *testing.T) {
 	// Note: This test uses the mock types from the protobuf example
 	// In a real scenario, you would use actual protobuf messages
-	
+
 	t.Run("basic functionality", func(t *testing.T) {
 		p, err := jqyaml.New(
 			jqyaml.WithQuery("."),
@@ -338,13 +335,13 @@ func TestWithProtojsonInput(t *testing.T) {
 		if err != nil {
 			t.Fatalf("failed to create pipeline with WithProtojsonInput: %v", err)
 		}
-		
+
 		// Test with a simple map (non-protobuf data should still work)
 		data := map[string]interface{}{
-			"test": "value",
+			"test":   "value",
 			"number": 42,
 		}
-		
+
 		var buf bytes.Buffer
 		err = p.Execute(context.Background(), data,
 			jqyaml.WithWriter(&buf, jqyaml.FormatJSON),
@@ -352,8 +349,8 @@ func TestWithProtojsonInput(t *testing.T) {
 		if err != nil {
 			t.Fatalf("execution failed: %v", err)
 		}
-		
-		expected := `{"number": 42, "test": "value"}`
+
+		expected := `{"number":42,"test":"value"}`
 		got := strings.TrimSpace(buf.String())
 		if diff := cmp.Diff(expected, got); diff != "" {
 			t.Errorf("output mismatch (-want +got):\n%s", diff)

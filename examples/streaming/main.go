@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/apstndb/go-jq-yamlformat"
+	jqyaml "github.com/apstndb/go-jq-yamlformat"
 	"github.com/apstndb/go-yamlformat"
 	"github.com/goccy/go-yaml"
 )
@@ -118,7 +118,6 @@ func main() {
 		}),
 		jqyaml.WithTimeout(100*time.Millisecond),
 	)
-
 	if err != nil {
 		if _, ok := err.(*jqyaml.TimeoutError); ok {
 			log.Printf("Processing timed out after processing %d items\n", processed)

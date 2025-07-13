@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/apstndb/go-jq-yamlformat"
+	jqyaml "github.com/apstndb/go-jq-yamlformat"
 	"github.com/apstndb/go-yamlformat"
 	"github.com/goccy/go-yaml"
 )
@@ -18,8 +18,8 @@ import (
 type (
 	UserID   string
 	Currency struct {
-		Amount   float64
-		Code     string
+		Amount float64
+		Code   string
 	}
 	Transaction struct {
 		ID        string    `json:"id"`
@@ -86,7 +86,7 @@ func main() {
 			}),
 			// Custom marshaler for Currency
 			yaml.CustomMarshaler[Currency](func(c Currency) ([]byte, error) {
-				return []byte(fmt.Sprintf(`{"amount": %.2f, "code": "%s", "formatted": "%.2f %s"}`, 
+				return []byte(fmt.Sprintf(`{"amount": %.2f, "code": "%s", "formatted": "%.2f %s"}`,
 					c.Amount, c.Code, c.Amount, c.Code)), nil
 			}),
 			// Custom marshaler for big.Int

@@ -85,7 +85,7 @@ func TestRawOutputJqCompatibility(t *testing.T) {
 			expectedLines: []string{"", "line1", "line2"},
 			description:   "Leading newline should create empty line at start",
 		},
-		
+
 		// Non-string behavior
 		{
 			name:          "number fallback to JSON",
@@ -108,13 +108,13 @@ func TestRawOutputJqCompatibility(t *testing.T) {
 			expectedLines: []string{`{"key":"value"}`},
 			description:   "Objects should be output as compact JSON",
 		},
-		
+
 		// Complex queries
 		{
 			name: "extract string field with newlines",
 			input: map[string]interface{}{
 				"message": "Hello\nWorld",
-				"other": 123,
+				"other":   123,
 			},
 			query:         ".message",
 			expectedLines: []string{"Hello", "World"},
@@ -123,7 +123,7 @@ func TestRawOutputJqCompatibility(t *testing.T) {
 		{
 			name: "string concatenation with newlines",
 			input: map[string]interface{}{
-				"first": "Hello\n",
+				"first":  "Hello\n",
 				"second": "World",
 			},
 			query:         ".first + .second",
@@ -135,7 +135,7 @@ func TestRawOutputJqCompatibility(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Logf("Testing: %s", tt.description)
-			
+
 			p, err := New(WithQuery(tt.query))
 			if err != nil {
 				t.Fatalf("failed to create pipeline: %v", err)
@@ -151,14 +151,14 @@ func TestRawOutputJqCompatibility(t *testing.T) {
 			}
 
 			output := buf.String()
-			
+
 			// For raw output, the final newline is added by our encoder
 			// Split by newlines and remove the final empty string if present
 			lines := strings.Split(output, "\n")
 			if len(lines) > 0 && lines[len(lines)-1] == "" {
 				lines = lines[:len(lines)-1]
 			}
-			
+
 			// Compare line by line
 			if len(lines) != len(tt.expectedLines) {
 				t.Errorf("Line count mismatch: got %d, want %d", len(lines), len(tt.expectedLines))
@@ -166,7 +166,7 @@ func TestRawOutputJqCompatibility(t *testing.T) {
 				t.Errorf("Want lines: %q", tt.expectedLines)
 				return
 			}
-			
+
 			for i, line := range lines {
 				if line != tt.expectedLines[i] {
 					t.Errorf("Line %d mismatch:\ngot:  %q\nwant: %q", i, line, tt.expectedLines[i])
@@ -212,7 +212,7 @@ func TestRawOutputStreamingConsistency(t *testing.T) {
 			if err != nil {
 				t.Fatalf("writer execution failed: %v", err)
 			}
-			
+
 			// Test with callback
 			var callbackResults []string
 			p2, _ := New(WithQuery(tc.query))
@@ -234,15 +234,15 @@ func TestRawOutputStreamingConsistency(t *testing.T) {
 			if err != nil {
 				t.Fatalf("callback execution failed: %v", err)
 			}
-			
+
 			// Compare outputs
 			writerLines := strings.Split(strings.TrimRight(writerBuf.String(), "\n"), "\n")
-			
+
 			if len(writerLines) != len(callbackResults) {
-				t.Errorf("Line count mismatch: writer=%d, callback=%d", 
+				t.Errorf("Line count mismatch: writer=%d, callback=%d",
 					len(writerLines), len(callbackResults))
 			}
-			
+
 			for i := 0; i < len(writerLines) && i < len(callbackResults); i++ {
 				if writerLines[i] != callbackResults[i] {
 					t.Errorf("Line %d differs:\nwriter:   %q\ncallback: %q",

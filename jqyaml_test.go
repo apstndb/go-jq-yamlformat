@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/MakeNowJust/heredoc/v2"
-	"github.com/apstndb/go-jq-yamlformat"
+	jqyaml "github.com/apstndb/go-jq-yamlformat"
 	"github.com/apstndb/go-yamlformat"
 	"github.com/goccy/go-yaml"
 	"github.com/itchyny/gojq"
@@ -20,7 +20,7 @@ func TestNew(t *testing.T) {
 		name    string
 		opts    []jqyaml.Option
 		wantErr bool
-		errMsg string
+		errMsg  string
 	}{
 		{
 			name: "empty pipeline",
@@ -38,7 +38,7 @@ func TestNew(t *testing.T) {
 				jqyaml.WithQuery(".users[] | select(.name =="),
 			},
 			wantErr: true,
-			errMsg: "failed to parse query",
+			errMsg:  "failed to parse query",
 		},
 		{
 			name: "query with custom options",
@@ -88,12 +88,12 @@ func TestExecute(t *testing.T) {
 		wantErr    bool
 	}{
 		{
-			name:       "simple passthrough",
-			query:      ".",
-			data:       map[string]interface{}{"foo": "bar"},
-			format:     yamlformat.FormatJSON,
+			name:   "simple passthrough",
+			query:  ".",
+			data:   map[string]interface{}{"foo": "bar"},
+			format: yamlformat.FormatJSON,
 			wantOutput: heredoc.Doc(`
-				{"foo": "bar"}
+				{"foo":"bar"}
 			`),
 		},
 		{
@@ -108,14 +108,14 @@ func TestExecute(t *testing.T) {
 			},
 			format: yamlformat.FormatJSON,
 			wantOutput: heredoc.Doc(`
-				{"active": true, "id": 1}
-				{"active": true, "id": 3}
+				{"active":true,"id":1}
+				{"active":true,"id":3}
 			`),
 		},
 		{
-			name:  "with variables",
-			query: ".[] | select(. > $threshold)",
-			data:  []int{1, 5, 10, 15, 20},
+			name:   "with variables",
+			query:  ".[] | select(. > $threshold)",
+			data:   []int{1, 5, 10, 15, 20},
 			format: yamlformat.FormatJSON,
 			variables: map[string]interface{}{
 				"threshold": 10,
@@ -129,7 +129,7 @@ func TestExecute(t *testing.T) {
 			name:  "yaml output",
 			query: ".",
 			data: map[string]interface{}{
-				"name": "test",
+				"name":  "test",
 				"items": []string{"a", "b", "c"},
 			},
 			format: yamlformat.FormatYAML,
@@ -208,7 +208,6 @@ func TestStreamingExecute(t *testing.T) {
 			return nil
 		}),
 	)
-
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -306,7 +305,7 @@ func TestNoQuery(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	want := `{"test": "data"}
+	want := `{"test":"data"}
 `
 	if got := buf.String(); got != want {
 		t.Errorf("output mismatch\ngot:  %q\nwant: %q", got, want)
@@ -353,7 +352,7 @@ func TestComplexVariables(t *testing.T) {
 	if len(lines) != 2 {
 		t.Errorf("expected 2 results, got %d: %s", len(lines), output)
 	}
-	
+
 	// Verify each line is valid JSON
 	for i, line := range lines {
 		var result map[string]interface{}
@@ -365,7 +364,7 @@ func TestComplexVariables(t *testing.T) {
 
 func TestEncodeOptions(t *testing.T) {
 	data := map[string]interface{}{
-		"text": "line1\nline2\nline3",
+		"text":   "line1\nline2\nline3",
 		"number": 42,
 	}
 
@@ -431,7 +430,7 @@ func TestCompilerOptions(t *testing.T) {
 	}
 
 	// Expected: [1,2,3] -> [2,3,4] -> [4,6,8]
-	expected := "[4, 6, 8]"
+	expected := "[4,6,8]"
 	if got := strings.TrimSpace(buf.String()); got != expected {
 		t.Errorf("Expected %s, got %s", expected, got)
 	}

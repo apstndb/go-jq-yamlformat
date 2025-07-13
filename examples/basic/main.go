@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/apstndb/go-jq-yamlformat"
+	jqyaml "github.com/apstndb/go-jq-yamlformat"
 	"github.com/apstndb/go-yamlformat"
 )
 
@@ -18,7 +18,7 @@ func main() {
 			{"id": 3, "name": "Charlie", "active": true, "score": 92.1},
 		},
 		"metadata": map[string]interface{}{
-			"version": "1.0",
+			"version":   "1.0",
 			"generated": "2024-01-15",
 		},
 	}

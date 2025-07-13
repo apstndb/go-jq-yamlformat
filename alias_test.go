@@ -5,7 +5,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/apstndb/go-jq-yamlformat"
+	jqyaml "github.com/apstndb/go-jq-yamlformat"
 )
 
 // TestAliases verifies that Format aliases work without importing yamlformat
@@ -25,8 +25,8 @@ func TestAliases(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if got := jsonBuf.String(); got != `{"test": "value"}`+"\n" {
-		t.Errorf("FormatJSON: expected %q, got %q", `{"test": "value"}`+"\n", got)
+	if got := jsonBuf.String(); got != `{"test":"value"}`+"\n" {
+		t.Errorf("FormatJSON: expected %q, got %q", `{"test":"value"}`+"\n", got)
 	}
 
 	// Test FormatYAML alias

@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/apstndb/go-jq-yamlformat"
+	jqyaml "github.com/apstndb/go-jq-yamlformat"
 )
 
 func TestQueryError(t *testing.T) {

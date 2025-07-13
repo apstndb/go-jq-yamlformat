@@ -9,9 +9,19 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
+// createProtojsonMarshaler creates a new protojsonMarshaler with default options
+func createProtojsonMarshaler() InputMarshaler {
+	return &protojsonMarshaler{
+		protojsonOptions: protojson.MarshalOptions{
+			UseProtoNames:   true,
+			EmitUnpopulated: false,
+		},
+	}
+}
+
 // protojsonMarshaler implements InputMarshaler using protojson for Protocol Buffer messages
 type protojsonMarshaler struct {
-	encodeOptions []yaml.EncodeOption
+	encodeOptions    []yaml.EncodeOption
 	protojsonOptions protojson.MarshalOptions
 }
 
@@ -67,7 +77,7 @@ func (m *protojsonMarshaler) Marshal(v interface{}) (interface{}, error) {
 				// Try to convert to string
 				keyStr = key.String()
 			}
-			
+
 			value := iter.Value().Interface()
 			converted, err := m.Marshal(value)
 			if err != nil {
