@@ -394,13 +394,18 @@ type defaultInputMarshaler struct {
 	protojsonMarshaler InputMarshaler
 }
 
+// ensureProtojsonMarshaler ensures the protojsonMarshaler is initialized
+func (d *defaultInputMarshaler) ensureProtojsonMarshaler() {
+	if d.protojsonMarshaler == nil {
+		// Lazy initialization to avoid import if not needed
+		d.protojsonMarshaler = createProtojsonMarshaler()
+	}
+}
+
 func (d *defaultInputMarshaler) Marshal(v interface{}) (interface{}, error) {
 	// Check if v implements proto.Message
 	if isProtoMessage(v) {
-		if d.protojsonMarshaler == nil {
-			// Lazy initialization to avoid import if not needed
-			d.protojsonMarshaler = createProtojsonMarshaler()
-		}
+		d.ensureProtojsonMarshaler()
 		return d.protojsonMarshaler.Marshal(v)
 	}
 
@@ -419,10 +424,7 @@ func (d *defaultInputMarshaler) Marshal(v interface{}) (interface{}, error) {
 		}
 
 		if useProtoMarshaler {
-			if d.protojsonMarshaler == nil {
-				// Lazy initialization to avoid import if not needed
-				d.protojsonMarshaler = createProtojsonMarshaler()
-			}
+			d.ensureProtojsonMarshaler()
 			return d.protojsonMarshaler.Marshal(v)
 		}
 	}

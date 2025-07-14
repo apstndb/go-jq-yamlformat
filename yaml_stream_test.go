@@ -3,8 +3,9 @@ package jqyaml
 import (
 	"bytes"
 	"context"
-	"strings"
 	"testing"
+
+	"github.com/google/go-cmp/cmp"
 )
 
 // TestYAMLStreamDocumentSeparator tests that multiple YAML documents are properly separated with ---
@@ -71,11 +72,8 @@ func TestYAMLStreamDocumentSeparator(t *testing.T) {
 			}
 
 			got := buf.String()
-			if got != tc.expected {
-				t.Errorf("unexpected output\ngot:\n%s\nwant:\n%s", got, tc.expected)
-				// Also show the difference in a more readable format
-				t.Errorf("got lines: %q", strings.Split(got, "\n"))
-				t.Errorf("want lines: %q", strings.Split(tc.expected, "\n"))
+			if diff := cmp.Diff(tc.expected, got); diff != "" {
+				t.Errorf("unexpected output (-want +got):\n%s", diff)
 			}
 		})
 	}
@@ -105,13 +103,7 @@ func TestYAMLStreamWithCallback(t *testing.T) {
 
 	// Verify we got the expected number of results and they are correct
 	expected := []interface{}{1, 2, 3}
-	if len(results) != len(expected) {
-		t.Fatalf("expected %d results, got %d", len(expected), len(results))
-	}
-
-	for i := range results {
-		if results[i] != expected[i] {
-			t.Errorf("result at index %d mismatch: got %v, want %v", i, results[i], expected[i])
-		}
+	if diff := cmp.Diff(expected, results); diff != "" {
+		t.Errorf("unexpected results (-want +got):\n%s", diff)
 	}
 }
