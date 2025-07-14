@@ -122,3 +122,12 @@ func WithRawJSONOutput() ExecuteOption {
 		c.rawOutput = true
 	}
 }
+
+// WithDefaultJSONStyle sets the default JSON output style for the pipeline
+// This can be overridden by execution options
+func WithDefaultJSONStyle(style JSONStyle) Option {
+	return func(p *pipeline) error {
+		p.defaultJSONStyle = style
+		return nil
+	}
+}

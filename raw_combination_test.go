@@ -7,8 +7,12 @@ import (
 	"testing"
 )
 
+const (
+	helloWorldWithNewline = "hello world\n"
+)
+
 // TestRawOutputCombinations tests the behavior of raw output with compact and pretty options
-func TestRawOutputCombinations(t *testing.T) {
+func TestRawOutputCombinations(t *testing.T) { //nolint:gocyclo // Table-driven test with multiple test cases
 	tests := []struct {
 		name        string
 		input       interface{}
@@ -25,7 +29,7 @@ func TestRawOutputCombinations(t *testing.T) {
 			options:     []ExecuteOption{WithRawJSONOutput()},
 			description: "Raw output for strings: no quotes, literal output",
 			checkFunc: func(t *testing.T, output string) {
-				if output != "hello world\n" {
+				if output != helloWorldWithNewline {
 					t.Errorf("Expected 'hello world\\n', got %q", output)
 				}
 			},
@@ -37,7 +41,7 @@ func TestRawOutputCombinations(t *testing.T) {
 			options:     []ExecuteOption{WithRawJSONOutput(), WithCompactJSONOutput()},
 			description: "Raw + Compact for strings: still no quotes (raw takes precedence)",
 			checkFunc: func(t *testing.T, output string) {
-				if output != "hello world\n" {
+				if output != helloWorldWithNewline {
 					t.Errorf("Expected 'hello world\\n', got %q", output)
 				}
 			},
@@ -49,7 +53,7 @@ func TestRawOutputCombinations(t *testing.T) {
 			options:     []ExecuteOption{WithRawJSONOutput(), WithPrettyJSONOutput()},
 			description: "Raw + Pretty for strings: still no quotes (raw takes precedence)",
 			checkFunc: func(t *testing.T, output string) {
-				if output != "hello world\n" {
+				if output != helloWorldWithNewline {
 					t.Errorf("Expected 'hello world\\n', got %q", output)
 				}
 			},
@@ -195,7 +199,8 @@ func TestRawOutputCombinations(t *testing.T) {
 			}
 
 			var buf bytes.Buffer
-			opts := append(tt.options, WithWriter(&buf, FormatJSON))
+			opts := append([]ExecuteOption{}, tt.options...)
+			opts = append(opts, WithWriter(&buf, FormatJSON))
 
 			err = p.Execute(context.Background(), tt.input, opts...)
 			if err != nil {
@@ -223,7 +228,7 @@ func TestRawOutputPriority(t *testing.T) {
 		{WithCompactJSONOutput(), WithPrettyJSONOutput(), WithRawJSONOutput()},
 	}
 
-	var outputs []string
+	outputs := make([]string, 0, len(optionSets))
 
 	for i, opts := range optionSets {
 		p, err := New(WithQuery(query))
@@ -232,7 +237,8 @@ func TestRawOutputPriority(t *testing.T) {
 		}
 
 		var buf bytes.Buffer
-		execOpts := append(opts, WithWriter(&buf, FormatJSON))
+		execOpts := append([]ExecuteOption{}, opts...)
+		execOpts = append(execOpts, WithWriter(&buf, FormatJSON))
 
 		err = p.Execute(context.Background(), input, execOpts...)
 		if err != nil {

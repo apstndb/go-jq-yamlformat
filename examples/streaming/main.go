@@ -13,7 +13,7 @@ import (
 	"github.com/goccy/go-yaml"
 )
 
-func main() {
+func main() { //nolint:gocyclo // Example code demonstrating multiple use cases
 	// Generate large dataset
 	var items []map[string]interface{}
 	for i := 0; i < 1000; i++ {
@@ -128,17 +128,29 @@ func main() {
 
 	// Example 4: Stream to file
 	log.Println("\nExample 4: Stream to file")
-	file, err := os.Create("output.jsonl")
+
+	// Create .tmp directory if it doesn't exist
+	if err := os.MkdirAll(".tmp", 0o750); err != nil {
+		log.Printf("Error creating .tmp directory: %v\n", err)
+		return
+	}
+
+	file, err := os.Create(".tmp/output.jsonl")
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer file.Close()
+	defer func() {
+		if err := file.Close(); err != nil {
+			log.Printf("Error closing file: %v\n", err)
+		}
+	}()
 
 	p4, err := jqyaml.New(
 		jqyaml.WithQuery(`.items[] | select(.value > 5000)`),
 	)
 	if err != nil {
-		log.Fatal(err)
+		log.Printf("Error creating pipeline: %v\n", err)
+		return
 	}
 
 	jsonEncoder := yamlformat.NewJSONEncoder(file)
@@ -150,7 +162,8 @@ func main() {
 		}),
 	)
 	if err != nil {
-		log.Fatal(err)
+		log.Printf("Error executing pipeline: %v\n", err)
+		return
 	}
-	log.Printf("Wrote %d items to output.jsonl\n", fileCount)
+	log.Printf("Wrote %d items to .tmp/output.jsonl\n", fileCount)
 }
