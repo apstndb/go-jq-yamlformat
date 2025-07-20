@@ -38,8 +38,16 @@ func (e *ConversionError) Unwrap() error {
 // TimeoutError represents execution timeout
 type TimeoutError struct {
 	Duration time.Duration
+	Err      error
 }
 
 func (e *TimeoutError) Error() string {
+	if e.Err != nil {
+		return fmt.Sprintf("execution timeout after %s: %v", e.Duration, e.Err)
+	}
 	return fmt.Sprintf("execution timeout after %s", e.Duration)
+}
+
+func (e *TimeoutError) Unwrap() error {
+	return e.Err
 }

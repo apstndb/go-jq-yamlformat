@@ -1,6 +1,7 @@
 package jqyaml_test
 
 import (
+	"context"
 	"errors"
 	"strings"
 	"testing"
@@ -47,14 +48,38 @@ func TestConversionError(t *testing.T) {
 }
 
 func TestTimeoutError(t *testing.T) {
-	err := &jqyaml.TimeoutError{
-		Duration: 5 * time.Second,
-	}
+	t.Run("without wrapped error", func(t *testing.T) {
+		err := &jqyaml.TimeoutError{
+			Duration: 5 * time.Second,
+		}
 
-	want := "execution timeout after 5s"
-	if got := err.Error(); got != want {
-		t.Errorf("Error() = %q, want %q", got, want)
-	}
+		want := "execution timeout after 5s"
+		if got := err.Error(); got != want {
+			t.Errorf("Error() = %q, want %q", got, want)
+		}
+	})
+
+	t.Run("with wrapped error", func(t *testing.T) {
+		err := &jqyaml.TimeoutError{
+			Duration: 5 * time.Second,
+			Err:      context.DeadlineExceeded,
+		}
+
+		want := "execution timeout after 5s: context deadline exceeded"
+		if got := err.Error(); got != want {
+			t.Errorf("Error() = %q, want %q", got, want)
+		}
+
+		// Test Unwrap
+		if unwrapped := err.Unwrap(); unwrapped != context.DeadlineExceeded {
+			t.Errorf("Unwrap() = %v, want %v", unwrapped, context.DeadlineExceeded)
+		}
+
+		// Test errors.Is
+		if !errors.Is(err, context.DeadlineExceeded) {
+			t.Errorf("errors.Is(err, context.DeadlineExceeded) = false, want true")
+		}
+	})
 }
 
 func TestErrorTypes(t *testing.T) {
@@ -63,7 +88,8 @@ func TestErrorTypes(t *testing.T) {
 	var _ error = (*jqyaml.ConversionError)(nil)
 	var _ error = (*jqyaml.TimeoutError)(nil)
 
-	// Ensure QueryError and ConversionError implement unwrap
+	// Ensure error types implement unwrap
 	var _ interface{ Unwrap() error } = (*jqyaml.QueryError)(nil)
 	var _ interface{ Unwrap() error } = (*jqyaml.ConversionError)(nil)
+	var _ interface{ Unwrap() error } = (*jqyaml.TimeoutError)(nil)
 }

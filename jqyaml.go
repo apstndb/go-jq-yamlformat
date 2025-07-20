@@ -221,7 +221,7 @@ func (p *pipeline) streamingProcess(ctx context.Context, data interface{}, varia
 		}
 		if err, ok := v.(error); ok {
 			if err == context.DeadlineExceeded {
-				return &TimeoutError{Duration: timeout}
+				return &TimeoutError{Duration: timeout, Err: err}
 			}
 			return &QueryError{
 				Query:   p.query,
