@@ -45,6 +45,8 @@ examples:
 	go run examples/streaming/main.go
 	@echo "\n=== Errors Example ==="
 	go run examples/errors/main.go
+	@echo "\n=== Protobuf Example ==="
+	go run examples/protobuf/main.go
 
 .PHONY: clean
 clean:

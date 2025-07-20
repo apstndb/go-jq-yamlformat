@@ -333,12 +333,18 @@ func TestComplexVariables(t *testing.T) {
 		t.Fatalf("failed to create pipeline: %v", err)
 	}
 
+	// Use the Filter struct to demonstrate passing structs as variables
+	filter := Filter{
+		MinValue: 10,
+		Tags:     []string{"b"},
+	}
+
 	var buf bytes.Buffer
 	err = p.Execute(context.Background(), data,
 		jqyaml.WithWriter(&buf, yamlformat.FormatJSON),
 		jqyaml.WithVariables(map[string]interface{}{
-			"minValue": 10,
-			"tags":     []string{"b"},
+			"minValue": filter.MinValue,
+			"tags":     filter.Tags,
 		}),
 	)
 	if err != nil {
