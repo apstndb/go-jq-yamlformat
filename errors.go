@@ -37,7 +37,12 @@ func (e *ConversionError) Unwrap() error {
 
 // TimeoutError represents execution timeout
 type TimeoutError struct {
+	// Duration is the timeout duration configured for the pipeline via WithTimeout.
+	// Note: This reflects the configured timeout, not necessarily the actual elapsed time
+	// before the timeout occurred. If the context deadline comes from a parent context
+	// with a shorter deadline, this duration may be longer than the actual time elapsed.
 	Duration time.Duration
+	// Err is the underlying error (typically context.DeadlineExceeded)
 	Err      error
 }
 

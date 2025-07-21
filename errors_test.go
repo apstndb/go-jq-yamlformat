@@ -79,6 +79,14 @@ func TestTimeoutError(t *testing.T) {
 		if !errors.Is(err, context.DeadlineExceeded) {
 			t.Errorf("errors.Is(err, context.DeadlineExceeded) = false, want true")
 		}
+
+		// Test errors.As - verify the error type and contents are correctly preserved
+		var timeoutErr *jqyaml.TimeoutError
+		if !errors.As(err, &timeoutErr) {
+			t.Errorf("errors.As(err, &timeoutErr) = false, want true")
+		} else if timeoutErr.Duration != 5*time.Second {
+			t.Errorf("timeoutErr.Duration = %v, want %v", timeoutErr.Duration, 5*time.Second)
+		}
 	})
 }
 
