@@ -43,6 +43,19 @@ go test -v -race -coverprofile=coverage.out ./...
 go tool cover -html=coverage.out -o coverage.html
 ```
 
+## Before Committing
+
+Always run `make all` before committing to ensure:
+- Code formatting is correct (uses gofumpt)
+- All linting checks pass (golangci-lint)
+- All tests pass with race detection enabled
+
+```bash
+make all
+```
+
+If formatting issues are found, run `make fmt` to fix them automatically.
+
 ## Examples
 
 See the `examples/` directory for complete examples:

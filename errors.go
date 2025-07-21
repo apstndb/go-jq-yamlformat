@@ -43,7 +43,7 @@ type TimeoutError struct {
 	// with a shorter deadline, this duration may be longer than the actual time elapsed.
 	Duration time.Duration
 	// Err is the underlying error (typically context.DeadlineExceeded)
-	Err      error
+	Err error
 }
 
 func (e *TimeoutError) Error() string {

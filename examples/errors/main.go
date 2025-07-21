@@ -115,7 +115,7 @@ func main() {
 		if errors.Is(err, context.DeadlineExceeded) {
 			log.Println("Operation timed out")
 		}
-		
+
 		// 2. Extract TimeoutError to access the configured duration (useful for debugging)
 		var timeoutErr *jqyaml.TimeoutError
 		if errors.As(err, &timeoutErr) {
