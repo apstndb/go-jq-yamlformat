@@ -26,6 +26,12 @@ This library integrates [gojq](https://github.com/itchyny/gojq) and [go-yamlform
 - Actual compilation happens at execution time when variables are known
 - This allows pipeline reuse with different variables
 
+### Error Handling
+- All error types (`QueryError`, `ConversionError`, `TimeoutError`) implement the `error` interface with `Unwrap()` method
+- Supports Go 1.13+ error handling patterns with `errors.Is()` and `errors.As()`
+- `TimeoutError` wraps `context.DeadlineExceeded` for idiomatic timeout checking
+- The `Duration` field in `TimeoutError` reflects the configured timeout (via `WithTimeout`), not the actual elapsed time
+
 ## Testing
 
 ```bash
