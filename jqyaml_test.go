@@ -271,12 +271,14 @@ func TestTimeout(t *testing.T) {
 		t.Fatal("expected timeout error, got nil")
 	}
 
-	// Check if it's a timeout-related error
+	// Check that the error wraps context.DeadlineExceeded
 	if !errors.Is(err, context.DeadlineExceeded) {
-		var timeoutErr *jqyaml.TimeoutError
-		if !errors.As(err, &timeoutErr) {
-			t.Errorf("expected TimeoutError or context.DeadlineExceeded, got %T: %v", err, err)
-		}
+		t.Errorf("expected error to wrap context.DeadlineExceeded, got %T: %v", err, err)
+	}
+
+	// Check that the error message includes timeout duration
+	if !strings.Contains(err.Error(), "50ms") {
+		t.Errorf("expected error message to contain timeout duration '50ms', got: %v", err)
 	}
 }
 

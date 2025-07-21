@@ -1,11 +1,9 @@
 package jqyaml_test
 
 import (
-	"context"
 	"errors"
 	"strings"
 	"testing"
-	"time"
 
 	jqyaml "github.com/apstndb/go-jq-yamlformat"
 )
@@ -47,61 +45,12 @@ func TestConversionError(t *testing.T) {
 	}
 }
 
-func TestTimeoutError(t *testing.T) {
-	t.Run("without wrapped error", func(t *testing.T) {
-		err := &jqyaml.TimeoutError{
-			Duration: 5 * time.Second,
-		}
-
-		want := "execution timeout after 5s"
-		if got := err.Error(); got != want {
-			t.Errorf("Error() = %q, want %q", got, want)
-		}
-	})
-
-	t.Run("with wrapped error", func(t *testing.T) {
-		err := &jqyaml.TimeoutError{
-			Duration: 5 * time.Second,
-			Err:      context.DeadlineExceeded,
-		}
-
-		want := "execution timeout after 5s: context deadline exceeded"
-		if got := err.Error(); got != want {
-			t.Errorf("Error() = %q, want %q", got, want)
-		}
-
-		// Test Unwrap
-		if unwrapped := err.Unwrap(); unwrapped != context.DeadlineExceeded {
-			t.Errorf("Unwrap() = %v, want %v", unwrapped, context.DeadlineExceeded)
-		}
-
-		// Test errors.Is
-		if !errors.Is(err, context.DeadlineExceeded) {
-			t.Errorf("errors.Is(err, context.DeadlineExceeded) = false, want true")
-		}
-
-		// Test errors.As - verify the error type and contents are correctly preserved
-		var timeoutErr *jqyaml.TimeoutError
-		if !errors.As(err, &timeoutErr) {
-			t.Fatalf("errors.As(err, &timeoutErr) = false, want true")
-		}
-		if timeoutErr.Duration != 5*time.Second {
-			t.Errorf("timeoutErr.Duration = %v, want %v", timeoutErr.Duration, 5*time.Second)
-		}
-		if timeoutErr.Err != context.DeadlineExceeded {
-			t.Errorf("timeoutErr.Err = %v, want %v", timeoutErr.Err, context.DeadlineExceeded)
-		}
-	})
-}
-
 func TestErrorTypes(t *testing.T) {
 	// Ensure error types implement error interface
 	var _ error = (*jqyaml.QueryError)(nil)
 	var _ error = (*jqyaml.ConversionError)(nil)
-	var _ error = (*jqyaml.TimeoutError)(nil)
 
 	// Ensure error types implement unwrap
 	var _ interface{ Unwrap() error } = (*jqyaml.QueryError)(nil)
 	var _ interface{ Unwrap() error } = (*jqyaml.ConversionError)(nil)
-	var _ interface{ Unwrap() error } = (*jqyaml.TimeoutError)(nil)
 }

@@ -110,17 +110,10 @@ func main() {
 		jqyaml.WithTimeout(100*time.Millisecond),
 	)
 	if err != nil {
-		// You can check for timeout in two ways:
-		// 1. Simple check using errors.Is (when you just need to know if it timed out)
+		// Check for timeout using errors.Is
 		if errors.Is(err, context.DeadlineExceeded) {
-			log.Println("Operation timed out")
-		}
-
-		// 2. Extract TimeoutError to access the configured duration (useful for debugging)
-		var timeoutErr *jqyaml.TimeoutError
-		if errors.As(err, &timeoutErr) {
-			log.Printf("Timeout Error: %v\n", timeoutErr)
-			log.Printf("  Configured timeout was: %v\n", timeoutErr.Duration)
+			log.Printf("Operation timed out: %v", err)
+			// The error message includes the timeout duration
 		}
 	}
 
@@ -158,20 +151,14 @@ func handleError(err error) {
 	// Check for specific error types
 	var queryErr *jqyaml.QueryError
 	var convErr *jqyaml.ConversionError
-	var timeoutErr *jqyaml.TimeoutError
 
 	switch {
 	case errors.As(err, &queryErr):
 		log.Println("This is a query-related error. Check your jq syntax.")
 	case errors.As(err, &convErr):
 		log.Println("This is a data conversion error. Check your data types.")
-	case errors.As(err, &timeoutErr):
-		// Use TimeoutError when you need access to the configured timeout duration
-		log.Printf("The operation timed out after %v. Consider increasing the timeout or optimizing the query.", timeoutErr.Duration)
 	case errors.Is(err, context.DeadlineExceeded):
-		// This case won't be reached for jqyaml timeouts (they're wrapped in TimeoutError)
-		// but could happen for other deadline-exceeded errors from parent contexts
-		log.Println("Context deadline exceeded.")
+		log.Println("The operation timed out. Consider increasing the timeout or optimizing the query.")
 	case errors.Is(err, context.Canceled):
 		log.Println("Context was canceled.")
 	default:

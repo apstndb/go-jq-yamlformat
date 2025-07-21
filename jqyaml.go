@@ -222,11 +222,8 @@ func (p *pipeline) streamingProcess(ctx context.Context, data interface{}, varia
 		}
 		if err, ok := v.(error); ok {
 			if errors.Is(err, context.DeadlineExceeded) {
-				// Wrap context.DeadlineExceeded in TimeoutError to provide additional context:
-				// - The Duration field shows the configured timeout (via WithTimeout)
-				// - Users can still use errors.Is(err, context.DeadlineExceeded) for simple timeout checks
-				// - Or use errors.As(err, &TimeoutError) to access the Duration for logging/debugging
-				return &TimeoutError{Duration: timeout, Err: err}
+				// Wrap the error with timeout duration information
+				return fmt.Errorf("execution timeout after %s: %w", timeout, err)
 			}
 			return &QueryError{
 				Query:   p.query,
