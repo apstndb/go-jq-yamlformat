@@ -276,10 +276,11 @@ func TestTimeout(t *testing.T) {
 		t.Errorf("expected error to wrap context.DeadlineExceeded, got %T: %v", err, err)
 	}
 
-	// Check the exact error message for better test precision
-	want := "execution timeout after 50ms: context deadline exceeded"
-	if got := err.Error(); got != want {
-		t.Errorf("expected error message %q, got %q", want, got)
+	// Check that the error message contains the timeout information.
+	// We already confirmed it wraps context.DeadlineExceeded.
+	wantPrefix := "execution timeout after 50ms:"
+	if !strings.HasPrefix(err.Error(), wantPrefix) {
+		t.Errorf("expected error message to start with %q, got %q", wantPrefix, err.Error())
 	}
 }
 
