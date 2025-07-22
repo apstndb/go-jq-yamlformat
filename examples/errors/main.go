@@ -153,14 +153,14 @@ func handleError(err error) {
 	var convErr *jqyaml.ConversionError
 
 	switch {
-	case errors.As(err, &queryErr):
-		log.Println("This is a query-related error. Check your jq syntax.")
-	case errors.As(err, &convErr):
-		log.Println("This is a data conversion error. Check your data types.")
 	case errors.Is(err, context.DeadlineExceeded):
 		log.Println("The operation timed out. Consider increasing the timeout or optimizing the query.")
 	case errors.Is(err, context.Canceled):
 		log.Println("Context was canceled.")
+	case errors.As(err, &queryErr):
+		log.Println("This is a query-related error. Check your jq syntax.")
+	case errors.As(err, &convErr):
+		log.Println("This is a data conversion error. Check your data types.")
 	default:
 		log.Println("An unexpected error occurred.")
 	}

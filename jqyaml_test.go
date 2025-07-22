@@ -276,9 +276,10 @@ func TestTimeout(t *testing.T) {
 		t.Errorf("expected error to wrap context.DeadlineExceeded, got %T: %v", err, err)
 	}
 
-	// Check that the error message includes timeout duration
-	if !strings.Contains(err.Error(), "50ms") {
-		t.Errorf("expected error message to contain timeout duration '50ms', got: %v", err)
+	// Check the exact error message for better test precision
+	want := "execution timeout after 50ms: context deadline exceeded"
+	if got := err.Error(); got != want {
+		t.Errorf("expected error message %q, got %q", want, got)
 	}
 }
 
