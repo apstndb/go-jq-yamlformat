@@ -114,6 +114,8 @@ func main() {
 		if errors.Is(err, context.DeadlineExceeded) {
 			log.Printf("Operation timed out: %v", err)
 			// The error message includes the timeout duration
+		} else {
+			log.Printf("Unexpected error in timeout example: %v", err)
 		}
 	}
 
