@@ -225,6 +225,9 @@ func (p *pipeline) streamingProcess(ctx context.Context, data interface{}, varia
 				// Wrap the error with timeout duration information
 				return fmt.Errorf("execution timeout after %s: %w", timeout, err)
 			}
+			if errors.Is(err, context.Canceled) {
+				return fmt.Errorf("execution canceled: %w", err)
+			}
 			return &QueryError{
 				Query:   p.query,
 				Message: "execution error",

@@ -284,6 +284,38 @@ func TestTimeout(t *testing.T) {
 	}
 }
 
+func TestContextCanceled(t *testing.T) {
+	p, err := jqyaml.New(jqyaml.WithQuery("while(true; .+1)")) // Infinite loop
+	if err != nil {
+		t.Fatalf("failed to create pipeline: %v", err)
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	
+	// Cancel immediately
+	cancel()
+
+	var buf bytes.Buffer
+	err = p.Execute(ctx, 0,
+		jqyaml.WithWriter(&buf, yamlformat.FormatJSON),
+	)
+
+	if err == nil {
+		t.Fatal("expected context canceled error, got nil")
+	}
+
+	// Check that the error wraps context.Canceled
+	if !errors.Is(err, context.Canceled) {
+		t.Errorf("expected error to wrap context.Canceled, got %T: %v", err, err)
+	}
+
+	// Check that the error message includes cancellation information
+	wantPrefix := "execution canceled:"
+	if !strings.HasPrefix(err.Error(), wantPrefix) {
+		t.Errorf("expected error message to start with %q, got %q", wantPrefix, err.Error())
+	}
+}
+
 func TestCustomMarshaler(t *testing.T) {
 	t.Skip("Custom marshaler for input data conversion is not yet supported")
 	// TODO: This test is currently failing because the custom marshaler
