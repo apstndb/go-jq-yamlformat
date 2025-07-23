@@ -45,7 +45,7 @@ go tool cover -html=coverage.out -o coverage.html
 ## Before Committing
 
 Always run `make all` before committing to ensure:
-- Code formatting is correct (uses gofumpt)
+- Code formatting is correct (uses golangci-lint fmt)
 - All linting checks pass (golangci-lint)
 - All tests pass with race detection enabled
 
