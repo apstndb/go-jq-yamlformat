@@ -4,7 +4,6 @@ import (
 	"errors"
 	"strings"
 	"testing"
-	"time"
 
 	jqyaml "github.com/apstndb/go-jq-yamlformat"
 )
@@ -46,24 +45,12 @@ func TestConversionError(t *testing.T) {
 	}
 }
 
-func TestTimeoutError(t *testing.T) {
-	err := &jqyaml.TimeoutError{
-		Duration: 5 * time.Second,
-	}
-
-	want := "execution timeout after 5s"
-	if got := err.Error(); got != want {
-		t.Errorf("Error() = %q, want %q", got, want)
-	}
-}
-
 func TestErrorTypes(t *testing.T) {
 	// Ensure error types implement error interface
 	var _ error = (*jqyaml.QueryError)(nil)
 	var _ error = (*jqyaml.ConversionError)(nil)
-	var _ error = (*jqyaml.TimeoutError)(nil)
 
-	// Ensure QueryError and ConversionError implement unwrap
+	// Ensure error types implement unwrap
 	var _ interface{ Unwrap() error } = (*jqyaml.QueryError)(nil)
 	var _ interface{ Unwrap() error } = (*jqyaml.ConversionError)(nil)
 }

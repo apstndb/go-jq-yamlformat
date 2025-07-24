@@ -26,6 +26,11 @@ This library integrates [gojq](https://github.com/itchyny/gojq) and [go-yamlform
 - Actual compilation happens at execution time when variables are known
 - This allows pipeline reuse with different variables
 
+### Error Handling
+- All error types (`QueryError`, `ConversionError`) implement the `error` interface with `Unwrap()` method
+- Supports Go 1.13+ error handling patterns with `errors.Is()` and `errors.As()`
+- Timeout errors are returned as `fmt.Errorf` wrapped `context.DeadlineExceeded` with timeout duration in the message
+
 ## Testing
 
 ```bash
@@ -36,6 +41,19 @@ go test -v ./...
 go test -v -race -coverprofile=coverage.out ./...
 go tool cover -html=coverage.out -o coverage.html
 ```
+
+## Before Committing
+
+Always run `make all` before committing to ensure:
+- Code formatting is correct (uses golangci-lint fmt)
+- All linting checks pass (golangci-lint)
+- All tests pass with race detection enabled
+
+```bash
+make all
+```
+
+If formatting issues are found, run `make fmt` to fix them automatically.
 
 ## Examples
 

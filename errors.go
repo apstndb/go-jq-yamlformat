@@ -2,7 +2,6 @@ package jqyaml
 
 import (
 	"fmt"
-	"time"
 )
 
 // QueryError represents a jq query compilation or execution error
@@ -33,13 +32,4 @@ func (e *ConversionError) Error() string {
 
 func (e *ConversionError) Unwrap() error {
 	return e.Err
-}
-
-// TimeoutError represents execution timeout
-type TimeoutError struct {
-	Duration time.Duration
-}
-
-func (e *TimeoutError) Error() string {
-	return fmt.Sprintf("execution timeout after %s", e.Duration)
 }

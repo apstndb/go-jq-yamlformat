@@ -247,7 +247,15 @@ err := p.Execute(ctx, map[string]interface{}{"message": "Hello, World!"},
 
 - `QueryError` - jq query compilation or execution errors
 - `ConversionError` - Data conversion errors
-- `TimeoutError` - Execution timeout errors
+
+The exported error types (`QueryError`, `ConversionError`) implement the `Unwrap()` method for Go 1.13+ error handling. Timeout errors are returned as wrapped `context.DeadlineExceeded` errors:
+
+```go
+// Check if an error is due to timeout
+if errors.Is(err, context.DeadlineExceeded) {
+    log.Printf("Operation timed out: %v", err)
+    // Error message includes timeout duration
+}
 
 ## Examples
 

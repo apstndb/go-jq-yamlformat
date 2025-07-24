@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -119,8 +120,8 @@ func main() { //nolint:gocyclo // Example code demonstrating multiple use cases
 		jqyaml.WithTimeout(100*time.Millisecond),
 	)
 	if err != nil {
-		if _, ok := err.(*jqyaml.TimeoutError); ok {
-			log.Printf("Processing timed out after processing %d items\n", processed)
+		if errors.Is(err, context.DeadlineExceeded) {
+			log.Printf("Processing timed out after processing %d items: %v\n", processed, err)
 		} else {
 			log.Fatal(err)
 		}

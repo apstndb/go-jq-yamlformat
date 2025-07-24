@@ -4,6 +4,7 @@ package jqyaml
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"math/big"
@@ -220,8 +221,12 @@ func (p *pipeline) streamingProcess(ctx context.Context, data interface{}, varia
 			break
 		}
 		if err, ok := v.(error); ok {
-			if err == context.DeadlineExceeded {
-				return &TimeoutError{Duration: timeout}
+			if errors.Is(err, context.DeadlineExceeded) {
+				// Wrap the error with timeout duration information
+				return fmt.Errorf("execution timeout after %s: %w", timeout, err)
+			}
+			if errors.Is(err, context.Canceled) {
+				return fmt.Errorf("execution canceled: %w", err)
 			}
 			return &QueryError{
 				Query:   p.query,

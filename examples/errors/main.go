@@ -110,10 +110,12 @@ func main() {
 		jqyaml.WithTimeout(100*time.Millisecond),
 	)
 	if err != nil {
-		var timeoutErr *jqyaml.TimeoutError
-		if errors.As(err, &timeoutErr) {
-			log.Printf("Timeout Error: %v\n", timeoutErr)
-			log.Printf("  Duration: %v\n", timeoutErr.Duration)
+		// Check for timeout using errors.Is
+		if errors.Is(err, context.DeadlineExceeded) {
+			log.Printf("Operation timed out: %v", err)
+			// The error message includes the timeout duration
+		} else {
+			log.Printf("Unexpected error in timeout example: %v", err)
 		}
 	}
 
@@ -151,19 +153,16 @@ func handleError(err error) {
 	// Check for specific error types
 	var queryErr *jqyaml.QueryError
 	var convErr *jqyaml.ConversionError
-	var timeoutErr *jqyaml.TimeoutError
 
 	switch {
+	case errors.Is(err, context.DeadlineExceeded):
+		log.Println("The operation timed out. Consider increasing the timeout or optimizing the query.")
+	case errors.Is(err, context.Canceled):
+		log.Println("Context was canceled.")
 	case errors.As(err, &queryErr):
 		log.Println("This is a query-related error. Check your jq syntax.")
 	case errors.As(err, &convErr):
 		log.Println("This is a data conversion error. Check your data types.")
-	case errors.As(err, &timeoutErr):
-		log.Println("The operation timed out. Consider increasing the timeout or optimizing the query.")
-	case errors.Is(err, context.DeadlineExceeded):
-		log.Println("Context deadline exceeded.")
-	case errors.Is(err, context.Canceled):
-		log.Println("Context was canceled.")
 	default:
 		log.Println("An unexpected error occurred.")
 	}

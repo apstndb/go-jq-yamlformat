@@ -271,12 +271,48 @@ func TestTimeout(t *testing.T) {
 		t.Fatal("expected timeout error, got nil")
 	}
 
-	// Check if it's a timeout-related error
+	// Check that the error wraps context.DeadlineExceeded
 	if !errors.Is(err, context.DeadlineExceeded) {
-		var timeoutErr *jqyaml.TimeoutError
-		if !errors.As(err, &timeoutErr) {
-			t.Errorf("expected TimeoutError or context.DeadlineExceeded, got %T: %v", err, err)
-		}
+		t.Errorf("expected error to wrap context.DeadlineExceeded, got %T: %v", err, err)
+	}
+
+	// Check that the error message contains the timeout information.
+	// We already confirmed it wraps context.DeadlineExceeded.
+	wantPrefix := "execution timeout after 50ms:"
+	if !strings.HasPrefix(err.Error(), wantPrefix) {
+		t.Errorf("expected error message to start with %q, got %q", wantPrefix, err.Error())
+	}
+}
+
+func TestContextCanceled(t *testing.T) {
+	p, err := jqyaml.New(jqyaml.WithQuery("while(true; .+1)")) // Infinite loop
+	if err != nil {
+		t.Fatalf("failed to create pipeline: %v", err)
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+
+	// Cancel immediately
+	cancel()
+
+	var buf bytes.Buffer
+	err = p.Execute(ctx, 0,
+		jqyaml.WithWriter(&buf, yamlformat.FormatJSON),
+	)
+
+	if err == nil {
+		t.Fatal("expected context canceled error, got nil")
+	}
+
+	// Check that the error wraps context.Canceled
+	if !errors.Is(err, context.Canceled) {
+		t.Errorf("expected error to wrap context.Canceled, got %T: %v", err, err)
+	}
+
+	// Check that the error message includes cancellation information
+	wantPrefix := "execution canceled:"
+	if !strings.HasPrefix(err.Error(), wantPrefix) {
+		t.Errorf("expected error message to start with %q, got %q", wantPrefix, err.Error())
 	}
 }
 
