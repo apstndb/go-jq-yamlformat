@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"reflect"
 
-	"github.com/goccy/go-yaml"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 )
@@ -21,7 +20,6 @@ func createProtojsonMarshaler() InputMarshaler {
 
 // protojsonMarshaler implements InputMarshaler using protojson for Protocol Buffer messages
 type protojsonMarshaler struct {
-	encodeOptions    []yaml.EncodeOption
 	protojsonOptions protojson.MarshalOptions
 }
 
@@ -108,7 +106,7 @@ func (m *protojsonMarshaler) Marshal(v interface{}) (interface{}, error) { //nol
 	}
 
 	// Fall back to default marshaling for other types
-	return (&defaultInputMarshaler{encodeOptions: m.encodeOptions}).Marshal(v)
+	return (&defaultInputMarshaler{}).Marshal(v)
 }
 
 // WithProtojsonInput creates an InputMarshaler that uses protojson for Protocol Buffer messages

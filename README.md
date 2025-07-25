@@ -78,27 +78,39 @@ err := p.Execute(ctx, data,
 )
 ```
 
-### Custom Type Marshalers
+### Custom Output Formatting (Type Marshalers)
+
+You can provide custom marshalers to control how specific Go types from the `gojq` output are formatted in the final JSON or YAML. This is particularly useful for types that `gojq` can produce, such as `*big.Int` for very large numbers.
+
+For handling custom types in the *input* data (e.g., converting Protobuf messages before querying), see the `WithInputMarshaler` option.
+
+The following example shows how to format a `*big.Int` output as a string in JSON, rather than a number:
 
 ```go
 import (
+    "math/big"
     "strconv"
     "github.com/goccy/go-yaml"
-    "github.com/google/uuid"
 )
 
+// gojq uses *big.Int for numbers that don't fit in int64, to preserve precision.
+largeNumber, _ := new(big.Int).SetString("123456789012345678901234567890", 10)
+
 p, _ := jqyaml.New(
-    jqyaml.WithQuery(".items[]"),
+    jqyaml.WithQuery("."), // Simple passthrough query
     jqyaml.WithDefaultEncodeOptions(
-        // Custom marshaler for time.Time
-        yaml.CustomMarshaler[time.Time](func(t time.Time) ([]byte, error) {
-            return []byte(strconv.Quote(t.Format(time.RFC3339))), nil
-        }),
-        // Custom marshaler for UUID
-        yaml.CustomMarshaler[uuid.UUID](func(u uuid.UUID) ([]byte, error) {
-            return []byte(strconv.Quote(u.String())), nil
+        // Custom marshaler for *big.Int to format it as a string
+        yaml.CustomMarshaler[*big.Int](func(i *big.Int) ([]byte, error) {
+            return []byte(strconv.Quote(i.String())), nil
         }),
     ),
+)
+
+// Execute the pipeline with the large number
+// The output will be `"123456789012345678901234567890"` (a JSON string)
+// instead of 123456789012345678901234567890 (a JSON number).
+err := p.Execute(ctx, largeNumber,
+    jqyaml.WithWriter(os.Stdout, jqyaml.FormatJSON),
 )
 ```
 

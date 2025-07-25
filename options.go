@@ -100,7 +100,6 @@ func WithCallback(callback func(interface{}) error) ExecuteOption {
 // This option only applies to JSON output format and is ignored for YAML
 func WithCompactJSONOutput() ExecuteOption {
 	return func(c *executeConfig) {
-		c.compactOutputSet = true
 		c.compactOutput = true
 	}
 }
@@ -109,7 +108,6 @@ func WithCompactJSONOutput() ExecuteOption {
 // This option only applies to JSON output format and is ignored for YAML
 func WithPrettyJSONOutput() ExecuteOption {
 	return func(c *executeConfig) {
-		c.compactOutputSet = true
 		c.compactOutput = false
 	}
 }
@@ -120,14 +118,5 @@ func WithPrettyJSONOutput() ExecuteOption {
 func WithRawJSONOutput() ExecuteOption {
 	return func(c *executeConfig) {
 		c.rawOutput = true
-	}
-}
-
-// WithDefaultJSONStyle sets the default JSON output style for the pipeline
-// This can be overridden by execution options
-func WithDefaultJSONStyle(style JSONStyle) Option {
-	return func(p *pipeline) error {
-		p.defaultJSONStyle = style
-		return nil
 	}
 }
