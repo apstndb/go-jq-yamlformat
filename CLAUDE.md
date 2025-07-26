@@ -55,6 +55,35 @@ make all
 
 If formatting issues are found, run `make fmt` to fix them automatically.
 
+## Pipeline Encoder Architecture
+
+The library uses a 3-stage pipeline encoder for maximum flexibility:
+1. **Serialization Stage**: Chooses between goccy/go-yaml (when custom options present) or standard library (for jq compatibility)
+2. **Compact Round-trip Stage**: Ensures compact JSON output when using custom formatters
+3. **Final Formatting Stage**: Handles YAML document separators and raw JSON output
+
+This architecture enables advanced custom type formatting while maintaining perfect jq compatibility.
+
+## Type Handling in Tests
+
+When writing tests with custom marshalers, be aware that JSON numbers can be either `int` or `float64` after unmarshaling:
+```go
+// Handle both int and float64 cases
+switch v := amount.(type) {
+case int:
+    amountInt = v
+case float64:
+    amountInt = int(v)
+}
+```
+
+## Custom Marshalers
+
+Custom marshalers work for both input and output data:
+- **Input**: Applied via `convertToJQCompatible` using `yamlformat.MarshalJSON`
+- **Output**: Applied during the serialization stage
+- Both respect `yaml.EncodeOption` for consistent behavior
+
 ## Examples
 
 See the `examples/` directory for complete examples:

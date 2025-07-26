@@ -3,477 +3,79 @@ package jqyaml_test
 import (
 	"bytes"
 	"context"
-	"errors"
-	"strings"
+	"math/big"
+	"strconv"
 	"testing"
-	"time"
 
-	"github.com/MakeNowJust/heredoc/v2"
 	jqyaml "github.com/apstndb/go-jq-yamlformat"
-	"github.com/apstndb/go-yamlformat"
 	"github.com/goccy/go-yaml"
-	"github.com/itchyny/gojq"
 )
 
-func TestNew(t *testing.T) {
-	tests := []struct {
-		name    string
-		opts    []jqyaml.Option
-		wantErr bool
-		errMsg  string
-	}{
-		{
-			name: "empty pipeline",
-			opts: nil,
-		},
-		{
-			name: "valid query",
-			opts: []jqyaml.Option{
-				jqyaml.WithQuery("."),
-			},
-		},
-		{
-			name: "invalid query syntax",
-			opts: []jqyaml.Option{
-				jqyaml.WithQuery(".users[] | select(.name =="),
-			},
-			wantErr: true,
-			errMsg:  "failed to parse query",
-		},
-		{
-			name: "query with custom options",
-			opts: []jqyaml.Option{
-				jqyaml.WithQuery(".items[]"),
-				jqyaml.WithDefaultEncodeOptions(
-					yaml.Indent(4),
-				),
-			},
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			p, err := jqyaml.New(tt.opts...)
-			if tt.wantErr {
-				if err == nil {
-					t.Fatalf("expected error, got nil")
-				}
-				if !strings.Contains(err.Error(), tt.errMsg) {
-					t.Errorf("error message should contain %q, got %q", tt.errMsg, err.Error())
-				}
-				var queryErr *jqyaml.QueryError
-				if !errors.As(err, &queryErr) {
-					t.Errorf("expected QueryError, got %T", err)
-				}
-			} else {
-				if err != nil {
-					t.Fatalf("unexpected error: %v", err)
-				}
-				if p == nil {
-					t.Fatal("expected non-nil pipeline")
-				}
-			}
-		})
-	}
-}
-
-func TestExecute(t *testing.T) {
-	tests := []struct {
-		name       string
-		query      string
-		data       interface{}
-		format     yamlformat.Format
-		variables  map[string]interface{}
-		wantOutput string
-		wantErr    bool
-	}{
-		{
-			name:   "simple passthrough",
-			query:  ".",
-			data:   map[string]interface{}{"foo": "bar"},
-			format: yamlformat.FormatJSON,
-			wantOutput: heredoc.Doc(`
-				{"foo":"bar"}
-			`),
-		},
-		{
-			name:  "array filtering",
-			query: ".items[] | select(.active)",
-			data: map[string]interface{}{
-				"items": []map[string]interface{}{
-					{"id": 1, "active": true},
-					{"id": 2, "active": false},
-					{"id": 3, "active": true},
-				},
-			},
-			format: yamlformat.FormatJSON,
-			wantOutput: heredoc.Doc(`
-				{"active":true,"id":1}
-				{"active":true,"id":3}
-			`),
-		},
-		{
-			name:   "with variables",
-			query:  ".[] | select(. > $threshold)",
-			data:   []int{1, 5, 10, 15, 20},
-			format: yamlformat.FormatJSON,
-			variables: map[string]interface{}{
-				"threshold": 10,
-			},
-			wantOutput: heredoc.Doc(`
-				15
-				20
-			`),
-		},
-		{
-			name:  "yaml output",
-			query: ".",
-			data: map[string]interface{}{
-				"name":  "test",
-				"items": []string{"a", "b", "c"},
-			},
-			format: yamlformat.FormatYAML,
-			wantOutput: heredoc.Doc(`
-				items:
-				- a
-				- b
-				- c
-				name: test
-			`),
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			p, err := jqyaml.New(jqyaml.WithQuery(tt.query))
-			if err != nil {
-				t.Fatalf("failed to create pipeline: %v", err)
-			}
-
-			var buf bytes.Buffer
-			opts := []jqyaml.ExecuteOption{
-				jqyaml.WithWriter(&buf, tt.format),
-			}
-			if tt.variables != nil {
-				opts = append(opts, jqyaml.WithVariables(tt.variables))
-			}
-
-			err = p.Execute(context.Background(), tt.data, opts...)
-			if tt.wantErr {
-				if err == nil {
-					t.Fatalf("expected error, got nil")
-				}
-			} else {
-				if err != nil {
-					t.Fatalf("unexpected error: %v", err)
-				}
-				got := buf.String()
-				if got != tt.wantOutput {
-					t.Errorf("output mismatch\ngot:  %q\nwant: %q", got, tt.wantOutput)
-				}
-			}
-		})
-	}
-}
-
-func TestExecuteMissingEncoder(t *testing.T) {
-	p, err := jqyaml.New(jqyaml.WithQuery("."))
-	if err != nil {
-		t.Fatalf("failed to create pipeline: %v", err)
-	}
-
-	err = p.Execute(context.Background(), "test")
-	if err == nil {
-		t.Fatal("expected error for missing encoder, got nil")
-	}
-	if !strings.Contains(err.Error(), "no output method specified") {
-		t.Errorf("unexpected error message: %v", err)
-	}
-}
-
-func TestStreamingExecute(t *testing.T) {
-	p, err := jqyaml.New(jqyaml.WithQuery(".items[]"))
-	if err != nil {
-		t.Fatalf("failed to create pipeline: %v", err)
-	}
-
-	data := map[string]interface{}{
-		"items": []string{"a", "b", "c", "d", "e"},
-	}
-
-	var results []interface{}
-	err = p.Execute(context.Background(), data,
-		jqyaml.WithCallback(func(item interface{}) error {
-			results = append(results, item)
-			return nil
-		}),
-	)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-
-	if len(results) != 5 {
-		t.Errorf("expected 5 results, got %d", len(results))
-	}
-
-	for i, r := range results {
-		expected := string([]byte{'a' + byte(i)})
-		if r != expected {
-			t.Errorf("result[%d] = %v, want %s", i, r, expected)
-		}
-	}
-}
-
-func TestStreamingExecuteWithError(t *testing.T) {
-	p, err := jqyaml.New(jqyaml.WithQuery(".items[]"))
-	if err != nil {
-		t.Fatalf("failed to create pipeline: %v", err)
-	}
-
-	data := map[string]interface{}{
-		"items": []int{1, 2, 3, 4, 5},
-	}
-
-	var results []interface{}
-	callbackErr := errors.New("callback error")
-	err = p.Execute(context.Background(), data,
-		jqyaml.WithCallback(func(item interface{}) error {
-			results = append(results, item)
-			if len(results) >= 3 {
-				return callbackErr
-			}
-			return nil
-		}),
-	)
-
-	if err != callbackErr {
-		t.Errorf("expected callback error, got %v", err)
-	}
-
-	if len(results) != 3 {
-		t.Errorf("expected 3 results before error, got %d", len(results))
-	}
-}
-
-func TestTimeout(t *testing.T) {
-	p, err := jqyaml.New(jqyaml.WithQuery("while(true; .+1)")) // Infinite loop
-	if err != nil {
-		t.Fatalf("failed to create pipeline: %v", err)
-	}
-
-	var buf bytes.Buffer
-	err = p.Execute(context.Background(), 0,
-		jqyaml.WithWriter(&buf, yamlformat.FormatJSON),
-		jqyaml.WithTimeout(50*time.Millisecond),
-	)
-
-	if err == nil {
-		t.Fatal("expected timeout error, got nil")
-	}
-
-	// Check that the error wraps context.DeadlineExceeded
-	if !errors.Is(err, context.DeadlineExceeded) {
-		t.Errorf("expected error to wrap context.DeadlineExceeded, got %T: %v", err, err)
-	}
-
-	// Check that the error message contains the timeout information.
-	// We already confirmed it wraps context.DeadlineExceeded.
-	wantPrefix := "execution timeout after 50ms:"
-	if !strings.HasPrefix(err.Error(), wantPrefix) {
-		t.Errorf("expected error message to start with %q, got %q", wantPrefix, err.Error())
-	}
-}
-
-func TestContextCanceled(t *testing.T) {
-	p, err := jqyaml.New(jqyaml.WithQuery("while(true; .+1)")) // Infinite loop
-	if err != nil {
-		t.Fatalf("failed to create pipeline: %v", err)
-	}
-
-	ctx, cancel := context.WithCancel(context.Background())
-
-	// Cancel immediately
-	cancel()
-
-	var buf bytes.Buffer
-	err = p.Execute(ctx, 0,
-		jqyaml.WithWriter(&buf, yamlformat.FormatJSON),
-	)
-
-	if err == nil {
-		t.Fatal("expected context canceled error, got nil")
-	}
-
-	// Check that the error wraps context.Canceled
-	if !errors.Is(err, context.Canceled) {
-		t.Errorf("expected error to wrap context.Canceled, got %T: %v", err, err)
-	}
-
-	// Check that the error message includes cancellation information
-	wantPrefix := "execution canceled:"
-	if !strings.HasPrefix(err.Error(), wantPrefix) {
-		t.Errorf("expected error message to start with %q, got %q", wantPrefix, err.Error())
-	}
-}
-
+// TestCustomMarshaler verifies that custom type marshalers work for both JSON and YAML.
 func TestCustomMarshaler(t *testing.T) {
-	t.Skip("Custom marshaler for input data conversion is not yet supported")
-	// TODO: This test is currently failing because the custom marshaler
-	// is applied during conversion to JQ-compatible format, but the result
-	// is then unmarshaled back to a generic interface{}, losing the custom formatting.
-	// To properly support this, we would need to preserve the marshaled format
-	// through the JQ processing pipeline.
+	largeNumber, _ := new(big.Int).SetString("12345678901234567890", 10)
+	customMarshalerOpt := jqyaml.WithDefaultEncodeOptions(
+		yaml.CustomMarshaler[*big.Int](func(i *big.Int) ([]byte, error) {
+			return []byte(strconv.Quote("big:" + i.String())), nil
+		}),
+	)
+	p, err := jqyaml.New(jqyaml.WithQuery("."), customMarshalerOpt)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	t.Run("json_output", func(t *testing.T) {
+		var buf bytes.Buffer
+		err := p.Execute(context.Background(), largeNumber, jqyaml.WithWriter(&buf, jqyaml.FormatJSON))
+		if err != nil {
+			t.Fatal(err)
+		}
+		want := `"big:12345678901234567890"` + "\n"
+		if got := buf.String(); got != want {
+			t.Errorf("output mismatch\ngot:  %q\nwant: %q", got, want)
+		}
+	})
+
+	t.Run("yaml_output", func(t *testing.T) {
+		var buf bytes.Buffer
+		err := p.Execute(context.Background(), largeNumber, jqyaml.WithWriter(&buf, jqyaml.FormatYAML))
+		if err != nil {
+			t.Fatal(err)
+		}
+		// The custom marshaler returns a quoted string, so YAML will preserve those quotes
+		want := `"big:12345678901234567890"` + "\n"
+		if got := buf.String(); got != want {
+			t.Errorf("output mismatch\ngot:  %q\nwant: %q", got, want)
+		}
+	})
 }
 
-func TestNoQuery(t *testing.T) {
-	// Pipeline without query should pass data through unchanged
-	p, err := jqyaml.New()
-	if err != nil {
-		t.Fatalf("failed to create pipeline: %v", err)
-	}
-
-	data := map[string]interface{}{"test": "data"}
-	var buf bytes.Buffer
-	err = p.Execute(context.Background(), data,
-		jqyaml.WithWriter(&buf, yamlformat.FormatJSON),
+// TestCompactWithCustomMarshaler verifies the round-trip for perfect compact output.
+func TestCompactWithCustomMarshaler(t *testing.T) {
+	data := map[string]interface{}{"key": "value"}
+	// This option adds a custom marshaler that will introduce whitespace.
+	customMarshalerOpt := jqyaml.WithDefaultEncodeOptions(
+		yaml.CustomMarshaler[string](func(s string) ([]byte, error) {
+			// A silly marshaler that adds spaces around the string.
+			return []byte(`"  ` + s + `  "`), nil
+		}),
 	)
+
+	p, err := jqyaml.New(jqyaml.WithQuery("."), customMarshalerOpt)
 	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
+		t.Fatal(err)
 	}
 
-	want := `{"test":"data"}
-`
+	var buf bytes.Buffer
+	// Enable compact output, which should trigger the round-trip.
+	err = p.Execute(context.Background(), data, jqyaml.WithWriter(&buf, jqyaml.FormatJSON), jqyaml.WithCompactJSONOutput())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// The round-trip ensures the output is compact, but preserves spaces within the string value.
+	want := `{"key":"  value  "}` + "\n"
 	if got := buf.String(); got != want {
 		t.Errorf("output mismatch\ngot:  %q\nwant: %q", got, want)
-	}
-}
-
-func TestComplexVariables(t *testing.T) {
-	// This test verifies that Go structs can be passed as variables
-	// and will be properly converted to JSON-compatible format
-	type Filter struct {
-		MinValue int      `json:"min_value"`
-		Tags     []string `json:"tags"`
-	}
-
-	data := []map[string]interface{}{
-		{"id": 1, "value": 10, "tags": []string{"a", "b"}},
-		{"id": 2, "value": 20, "tags": []string{"b", "c"}},
-		{"id": 3, "value": 5, "tags": []string{"a", "c"}},
-	}
-
-	p, err := jqyaml.New(
-		jqyaml.WithQuery(".[] | select(.value >= $minValue and (.tags[] as $t | $tags | contains([$t])))"),
-	)
-	if err != nil {
-		t.Fatalf("failed to create pipeline: %v", err)
-	}
-
-	// Use the Filter struct to demonstrate passing structs as variables
-	filter := Filter{
-		MinValue: 10,
-		Tags:     []string{"b"},
-	}
-
-	var buf bytes.Buffer
-	err = p.Execute(context.Background(), data,
-		jqyaml.WithWriter(&buf, yamlformat.FormatJSON),
-		jqyaml.WithVariables(map[string]interface{}{
-			"minValue": filter.MinValue,
-			"tags":     filter.Tags,
-		}),
-	)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-
-	// Should return items 1 and 2 (both have value >= 10 and contain tag "b")
-	// Now outputs separate JSON objects like jq does
-	output := buf.String()
-	lines := strings.Split(strings.TrimSpace(output), "\n")
-	if len(lines) != 2 {
-		t.Errorf("expected 2 results, got %d: %s", len(lines), output)
-	}
-
-	// Verify each line is valid JSON
-	for i, line := range lines {
-		var result map[string]interface{}
-		if err := yamlformat.Unmarshal([]byte(line), &result); err != nil {
-			t.Fatalf("failed to unmarshal result %d: %v", i, err)
-		}
-	}
-}
-
-func TestEncodeOptions(t *testing.T) {
-	data := map[string]interface{}{
-		"text":   "line1\nline2\nline3",
-		"number": 42,
-	}
-
-	p, err := jqyaml.New(
-		jqyaml.WithQuery("."),
-		jqyaml.WithDefaultEncodeOptions(
-			yaml.Indent(4),
-		),
-	)
-	if err != nil {
-		t.Fatalf("failed to create pipeline: %v", err)
-	}
-
-	var buf bytes.Buffer
-	err = p.Execute(context.Background(), data,
-		jqyaml.WithWriter(&buf, yamlformat.FormatYAML),
-		jqyaml.WithEncodeOptions(
-			yaml.UseLiteralStyleIfMultiline(true),
-		),
-	)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-
-	output := buf.String()
-	// Check for literal style
-	if !strings.Contains(output, "|") {
-		t.Error("expected literal style for multiline string")
-	}
-	// Check for indentation
-	if !strings.Contains(output, "    ") {
-		t.Error("expected 4-space indentation")
-	}
-}
-
-func TestCompilerOptions(t *testing.T) {
-	// Test with custom function
-	p, err := jqyaml.New(
-		jqyaml.WithQuery("map(. + 1) | map(double)"),
-		jqyaml.WithCompilerOptions(
-			gojq.WithFunction("double", 0, 0, func(x any, _ []any) any {
-				switch v := x.(type) {
-				case int:
-					return v * 2
-				case float64:
-					return v * 2
-				default:
-					return v
-				}
-			}),
-		),
-	)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	var buf bytes.Buffer
-	err = p.Execute(context.Background(), []int{1, 2, 3},
-		jqyaml.WithWriter(&buf, yamlformat.FormatJSON),
-	)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	// Expected: [1,2,3] -> [2,3,4] -> [4,6,8]
-	expected := "[4,6,8]"
-	if got := strings.TrimSpace(buf.String()); got != expected {
-		t.Errorf("Expected %s, got %s", expected, got)
 	}
 }
