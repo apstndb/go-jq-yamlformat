@@ -127,9 +127,16 @@ func (p *pipeline) Execute(ctx context.Context, input interface{}, opts ...Execu
 		defer cancel()
 	}
 
+	// Use custom input marshaler if provided, otherwise use default with encode options
 	marshaler := p.inputMarshaler
 	if marshaler == nil {
-		marshaler = &defaultInputMarshaler{}
+		// Pass the combined encode options to defaultInputMarshaler
+		// This ensures custom marshalers work for input data conversion
+		allEncodeOpts := append([]yaml.EncodeOption{}, p.defaultEncodeOptions...)
+		allEncodeOpts = append(allEncodeOpts, cfg.encodeOptions...)
+		marshaler = &defaultInputMarshaler{
+			encodeOptions: allEncodeOpts,
+		}
 	}
 
 	jsonData, err := marshaler.Marshal(input)
@@ -380,14 +387,30 @@ func (e *errorIter) Next() (interface{}, bool) {
 	return e.err, true
 }
 
-func convertToJQCompatible(v interface{}) (interface{}, error) {
+// convertToJQCompatible converts any Go value to gojq-compatible types.
+// gojq only accepts: nil, bool, int, float64, *big.Int, string, []any, map[string]any
+//
+// This function is used for INPUT data conversion before passing to gojq.
+// It respects custom marshalers via yaml.EncodeOption, allowing users to control
+// how their custom types are converted before being processed by jq queries.
+//
+// For example, a user might want to:
+// - Convert time.Time to a specific string format before querying
+// - Transform custom types into a queryable structure
+// - Handle special numeric types in a specific way
+//
+// The opts parameter allows passing yaml.CustomMarshaler options that will be
+// applied during the conversion process.
+func convertToJQCompatible(v interface{}, opts ...yaml.EncodeOption) (interface{}, error) {
 	switch v := v.(type) {
 	case nil, bool, string, int, float64, *big.Int:
+		// These types are already gojq-compatible
 		return v, nil
 	case []interface{}:
+		// Recursively convert array elements
 		result := make([]interface{}, len(v))
 		for i, elem := range v {
-			converted, err := convertToJQCompatible(elem)
+			converted, err := convertToJQCompatible(elem, opts...)
 			if err != nil {
 				return nil, err
 			}
@@ -395,9 +418,10 @@ func convertToJQCompatible(v interface{}) (interface{}, error) {
 		}
 		return result, nil
 	case map[string]interface{}:
+		// Recursively convert map values
 		result := make(map[string]interface{}, len(v))
 		for k, val := range v {
-			converted, err := convertToJQCompatible(val)
+			converted, err := convertToJQCompatible(val, opts...)
 			if err != nil {
 				return nil, err
 			}
@@ -405,16 +429,34 @@ func convertToJQCompatible(v interface{}) (interface{}, error) {
 		}
 		return result, nil
 	}
-	b, err := json.Marshal(v)
+
+	// For complex types, use yamlformat for marshaling to respect CustomMarshaler options
+	// This allows users to define how their custom types should be converted to
+	// gojq-compatible format before query execution
+	data, err := yamlformat.MarshalJSON(v, opts...)
 	if err != nil {
 		return nil, err
 	}
+
+	// Unmarshal to generic interface to get gojq-compatible types
 	var result interface{}
-	err = json.Unmarshal(b, &result)
-	return result, err
+	if err := yamlformat.Unmarshal(data, &result); err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }
 
+// defaultInputMarshaler implements InputMarshaler using the existing convertToJQCompatible logic.
+// It supports custom marshalers for input data transformation via encodeOptions.
+//
+// Design rationale:
+// - Input data often contains custom types that need specific conversion before jq processing
+// - Users should be able to control this conversion via yaml.CustomMarshaler
+// - The same encode options from WithDefaultEncodeOptions are passed here
+// - This ensures consistent type handling throughout the pipeline
 type defaultInputMarshaler struct {
+	encodeOptions      []yaml.EncodeOption
 	protojsonMarshaler InputMarshaler
 }
 
@@ -445,5 +487,5 @@ func (d *defaultInputMarshaler) Marshal(v interface{}) (interface{}, error) {
 			return d.protojsonMarshaler.Marshal(v)
 		}
 	}
-	return convertToJQCompatible(v)
+	return convertToJQCompatible(v, d.encodeOptions...)
 }

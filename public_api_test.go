@@ -80,7 +80,7 @@ func TestWithCallback(t *testing.T) {
 			name:          "error in callback",
 			input:         []int{1, 2, 3},
 			query:         ".[]",
-			expected:      []interface{}{float64(1), float64(2)},
+			expected:      []interface{}{1, 2},
 			wantErr:       true,
 			expectedError: errors.New("stop!"),
 		},

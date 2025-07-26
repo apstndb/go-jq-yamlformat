@@ -106,7 +106,9 @@ func (m *protojsonMarshaler) Marshal(v interface{}) (interface{}, error) { //nol
 	}
 
 	// Fall back to default marshaling for other types
-	return (&defaultInputMarshaler{}).Marshal(v)
+	// Note: We don't pass encodeOptions here because protojsonMarshaler
+	// is specifically for Protocol Buffer handling, not custom YAML marshalers
+	return convertToJQCompatible(v)
 }
 
 // WithProtojsonInput creates an InputMarshaler that uses protojson for Protocol Buffer messages
