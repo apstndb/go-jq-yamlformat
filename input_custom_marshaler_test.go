@@ -88,8 +88,13 @@ func TestInputAndOutputCustomMarshalers(t *testing.T) {
 		jqyaml.WithEncodeOptions(
 			// Output marshaler: format the result differently
 			yaml.CustomMarshaler[map[string]interface{}](func(m map[string]interface{}) ([]byte, error) {
-				// Format as a string representation
-				return []byte(fmt.Sprintf(`"%v %s"`, m["amount_cents"], m["currency"])), nil
+				// Format as a string representation in a type-safe way
+				amount, okA := m["amount_cents"]
+				currency, okC := m["currency"].(string)
+				if !okA || !okC {
+					return nil, fmt.Errorf("marshaler expected keys 'amount_cents' and 'currency', but got: %+v", m)
+				}
+				return []byte(fmt.Sprintf(`"%v %s"`, amount, currency)), nil
 			}),
 		),
 	)

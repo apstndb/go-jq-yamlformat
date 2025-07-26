@@ -276,25 +276,25 @@ func writeDefault(w io.Writer, marshaledBytes []byte) error {
 
 // writeRawJSON correctly handles `jq --raw-output` behavior.
 func writeRawJSON(w io.Writer, marshaledBytes []byte) error {
+	var contentToWrite []byte
+
 	// Check if this is a JSON string (but not null)
 	if len(marshaledBytes) > 0 && marshaledBytes[0] == '"' {
 		var s string
-		if err := json.Unmarshal(marshaledBytes, &s); err == nil {
-			// Successfully unmarshaled as string - write raw content
-			if _, err_write := io.WriteString(w, s); err_write != nil {
-				return err_write
-			}
+		if json.Unmarshal(marshaledBytes, &s) == nil {
+			// Successfully unmarshaled as string - use raw content
+			contentToWrite = []byte(s)
 		} else {
-			// Should not happen with valid JSON
-			if _, err_write := w.Write(marshaledBytes); err_write != nil {
-				return err_write
-			}
+			// Not a valid JSON string, but started with a quote. Write original bytes as a fallback.
+			contentToWrite = marshaledBytes
 		}
 	} else {
-		// Not a string (number, bool, null, object, array) - write the JSON representation
-		if _, err_write := w.Write(marshaledBytes); err_write != nil {
-			return err_write
-		}
+		// Not a string (number, bool, null, object, array) - use the JSON representation
+		contentToWrite = marshaledBytes
+	}
+
+	if _, err := w.Write(contentToWrite); err != nil {
+		return err
 	}
 	_, err := w.Write([]byte("\n"))
 	return err
