@@ -73,7 +73,7 @@ func TestCompactWithCustomMarshaler(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// The round-trip should have removed the extra spaces from the custom marshaler.
+	// The round-trip ensures the output is compact, but preserves spaces within the string value.
 	want := `{"key":"  value  "}` + "\n"
 	if got := buf.String(); got != want {
 		t.Errorf("output mismatch\ngot:  %q\nwant: %q", got, want)

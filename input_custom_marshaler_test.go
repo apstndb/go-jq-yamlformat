@@ -89,12 +89,25 @@ func TestInputAndOutputCustomMarshalers(t *testing.T) {
 			// Output marshaler: format the result differently
 			yaml.CustomMarshaler[map[string]interface{}](func(m map[string]interface{}) ([]byte, error) {
 				// Format as a string representation in a type-safe way
+				// Note: amount_cents could be int or float64 depending on the JSON unmarshaling path
 				amount, okA := m["amount_cents"]
 				currency, okC := m["currency"].(string)
 				if !okA || !okC {
-					return nil, fmt.Errorf("marshaler expected keys 'amount_cents' and 'currency', but got: %+v", m)
+					return nil, fmt.Errorf("marshaler expected keys 'amount_cents' and 'currency' (string), but got: %+v", m)
 				}
-				return []byte(fmt.Sprintf(`"%v %s"`, amount, currency)), nil
+				
+				// Handle both int and float64 cases
+				var amountInt int
+				switch v := amount.(type) {
+				case int:
+					amountInt = v
+				case float64:
+					amountInt = int(v)
+				default:
+					return nil, fmt.Errorf("amount_cents has unexpected type %T", v)
+				}
+				
+				return []byte(fmt.Sprintf(`"%d %s"`, amountInt, currency)), nil
 			}),
 		),
 	)
