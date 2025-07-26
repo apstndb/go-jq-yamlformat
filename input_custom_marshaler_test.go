@@ -95,7 +95,7 @@ func TestInputAndOutputCustomMarshalers(t *testing.T) {
 				if !okA || !okC {
 					return nil, fmt.Errorf("marshaler expected keys 'amount_cents' and 'currency' (string), but got: %+v", m)
 				}
-				
+
 				// Handle both int and float64 cases
 				var amountInt int
 				switch v := amount.(type) {
@@ -106,7 +106,7 @@ func TestInputAndOutputCustomMarshalers(t *testing.T) {
 				default:
 					return nil, fmt.Errorf("amount_cents has unexpected type %T", v)
 				}
-				
+
 				return []byte(fmt.Sprintf(`"%d %s"`, amountInt, currency)), nil
 			}),
 		),
